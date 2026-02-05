@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify
 from .db import db
 from .models import Pin
+from .gateway import require_token, generate_token
 
 api = Blueprint("api", __name__)
 
-# Create Pin
+# Create pin
 @api.route('/pins', methods=['POST'])
+@require_token
 def create_pin():
     data = request.get_json()
 
@@ -27,7 +29,7 @@ def create_pin():
         "created_at": pin.created_at.isoformat()
     }), 201
 
-# Retrieve Pin by ID
+# Retrieve pin by ID
 @api.route('/pins/<int:id>', methods=['GET'])
 def retrieve_pin(id):
     pin = Pin.query.get(id)
@@ -42,7 +44,7 @@ def retrieve_pin(id):
         "created_at": pin.created_at.isoformat()
     }), 200
 
-# Retrieve All Pins By Viewport
+# Retrieve all pins by viewport
 @api.route('/pins', methods=['GET'])
 def retrieve_all_pins():
     viewport = request.args.get('viewport')
@@ -73,7 +75,7 @@ def retrieve_all_pins():
         "created_at": pin.created_at.isoformat()
     } for pin in pins]), 200
 
-# Delete Pin by ID
+# Delete pin by ID
 @api.route('/pins/<int:id>', methods=['DELETE'])
 def delete_pin(id):
     if not id:

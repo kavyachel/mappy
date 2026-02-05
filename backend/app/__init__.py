@@ -1,12 +1,25 @@
 from flask import Flask, jsonify
+from flask_cors import CORS
+from dotenv import load_dotenv
+import os
 from .db import db
 from .api import api
 
+load_dotenv()
+
 def create_app():
-    # might want to move some stuff over
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./pins.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    # CORS config
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": os.getenv('FRONTEND_URL', 'http://localhost:3000'),
+            "methods": ["GET", "POST", "DELETE"],
+            "allow_headers": ["Content-Type"]
+        }
+    })
     
     db.init_app(app)
 
