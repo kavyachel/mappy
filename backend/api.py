@@ -1,49 +1,41 @@
-from flask import Flask, request
+from flask import Flask, Blueprint, request
 from flask_sqlalchemy import SQLAlchemy
-
-
+from db import db
+from model import Pin
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./pins.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+api = Blueprint("api", __name__)
 
-class test(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
+@api.route('/pins', methods=['POST'])
+def create_pin():
+    data = request.get_json()
 
-with app.app_context():
-    db.create_all()
-    db.session.add(test(name="test pin"))
+    if not data["lat"] or data["lon"]:
+        # TODO: need to fix
+        return {"error": "Latitude and longitude required"}, 400
+
+    pin = Pin(title=data["title"], lat=data["lat"], lon=data["lon"])
+
+    db.session.add(pin)
     db.session.commit()
+    return pin, None
 
-
-    tests = test.query.all()
-    for t in tests:
-        print(t.id, t.name)
-
-# should we make them all the same url
-
-@app.route('/pin', methods=['POST'])
-def create_pin(latitude: str, longitude: str):
-    # validate
-    # add to database
-    return
-
-@app.route('/pin/{id}', methods=['GET'])
+@api.route('/pins/{id}', methods=['GET'])
 def retrieve_pin():
     # validate
     # add to database
     return
 
-@app.route('/pins', methods=['GET'])
+@api.route('/pins', methods=['GET'])
 def retrieve_all_pin(viewport: str):
     # validate
     # add to database
     return
 
-@app.route('/pin/{id}', methods=['DELETE'])
+@api.route('/pins/{id}', methods=['DELETE'])
 def delete_pin():
     # validate id exists
     # remove from db
