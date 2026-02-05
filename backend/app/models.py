@@ -1,4 +1,4 @@
-from db import db
+from .db import db
 
 class Pin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
