@@ -16,7 +16,12 @@ function App() {
 
   const handlePinSubmit = async (pin) => {
     try {
-      await addPin(pin)
+      const resp = await addPin(pin)
+
+      if (!resp) {
+        throw new Error('Failed to create pin')
+      }
+
       setShowForm(false)
       setSelectedLocation(null)
     } catch (error) {
@@ -38,7 +43,10 @@ function App() {
           />
         </Sidebar>
       )}
-      <Map onLocationSelect={handleMapClick} />
+      <Map 
+        onLocationSelect={handleMapClick}
+        selectedLocation={selectedLocation}
+      />
     </>
   )
 }
