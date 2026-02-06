@@ -10,10 +10,10 @@ def create_pin():
     data = request.get_json()
 
     # maybe improve error handling
-    if not data.get("lat") or not data.get("lon"):
+    if not data.get("lat") or not data.get("lng"):
         return {"error": "Latitude and longitude required"}, 400
 
-    pin = Pin(title=data["title"], lat=data["lat"], lon=data["lon"])
+    pin = Pin(title=data["title"], lat=data["lat"], lng=data["lng"])
 
     db.session.add(pin)
     db.session.commit()
@@ -23,7 +23,7 @@ def create_pin():
         "id": pin.id,
         "title": pin.title,
         "lat": pin.lat,
-        "lon": pin.lon,
+        "lng": pin.lng,
         "created_at": pin.created_at.isoformat()
     }), 201
 
@@ -38,7 +38,7 @@ def retrieve_pin(id):
         "id": pin.id,
         "title": pin.title,
         "lat": pin.lat,
-        "lon": pin.lon,
+        "lng": pin.lng,
         "created_at": pin.created_at.isoformat()
     }), 200
 
@@ -59,8 +59,8 @@ def retrieve_all_pins():
             pins = Pin.query.filter(
                 Pin.lat >= bounds[0],
                 Pin.lat <= bounds[2],
-                Pin.lon >= bounds[1],
-                Pin.lon <= bounds[3]
+                Pin.lng >= bounds[1],
+                Pin.lng <= bounds[3]
             ).all()
         except ValueError:
             return {"error": "Viewport values must be valid numbers"}, 400
@@ -69,7 +69,7 @@ def retrieve_all_pins():
         "id": pin.id,
         "title": pin.title,
         "lat": pin.lat,
-        "lon": pin.lon,
+        "lng": pin.lng,
         "created_at": pin.created_at.isoformat()
     } for pin in pins]), 200
 

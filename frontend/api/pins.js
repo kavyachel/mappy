@@ -20,7 +20,7 @@ export const fetchPins = async (map) => {
       // Add markers for fetched pins
       pins.forEach(pin => {
         new mapboxgl.Marker({ color: "red" })
-          .setLngLat([pin.lon, pin.lat])
+          .setLngLat([pin.lng, pin.lat])
           .addTo(map);
       });
       
@@ -31,7 +31,7 @@ export const fetchPins = async (map) => {
 }
 
 // Add a new pin to the map and backend
-export const addPin = async ({ map, lng, lat }) => {
+export const addPin = async (newPin) => {
   try {
     // Send to backend
     const response = await fetch('http://localhost:5000/api/pins', {
@@ -40,9 +40,9 @@ export const addPin = async ({ map, lng, lat }) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        title: 'New Pin',
-        lat: lat,
-        lon: lng
+        title: newPin.title,
+        lat: newPin.lat,
+        lng: newPin.lng
       })
     });
 
@@ -54,10 +54,10 @@ export const addPin = async ({ map, lng, lat }) => {
     // remove this later
     console.log('Pin created:', pin);
 
-    // Add marker to map
-    new mapboxgl.Marker({ color: "blue" })
-      .setLngLat([lng, lat])
-      .addTo(map);
+    // // Add marker to map
+    // new mapboxgl.Marker({ color: "blue" })
+    //   .setLngLat([lng, lat])
+    //   .addTo(map);
 
   } catch (error) {
     console.error('Error creating pin:', error);
