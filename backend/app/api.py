@@ -1,13 +1,11 @@
 from flask import Blueprint, request, jsonify
 from .db import db
 from .models import Pin
-from .gateway import require_token, generate_token
 
 api = Blueprint("api", __name__)
 
 # Create pin
 @api.route('/pins', methods=['POST'])
-@require_token
 def create_pin():
     data = request.get_json()
 
