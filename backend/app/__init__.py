@@ -15,7 +15,7 @@ def create_app():
     # CORS config
     CORS(app, resources={
         r"/api/*": {
-            "origins": os.getenv('FRONTEND_URL', 'http://localhost:3000'),
+            "origins": os.getenv('FRONTEND_URL'),
             "methods": ["GET", "POST", "DELETE"],
             "allow_headers": ["Content-Type"]
         }
