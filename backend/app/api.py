@@ -55,29 +55,36 @@ def retrieve_pin(id):
         "created_at": pin.created_at.isoformat()
     }), 200
 
-# Retrieve all pins by viewport
+# Retrieve all pins by viewport, optionally filtered by tag
 @api.route('/pins', methods=['GET'])
 def retrieve_all_pins():
     viewport = request.args.get('viewport')
-    # If no viewport is provided, return all pins
-    if not viewport:
-        pins = Pin.query.all()
-    else:
+    tag = request.args.get('tag')
+
+    query = Pin.query
+
+    # Filter by viewport if provided
+    if viewport:
         try:
-            # Ensure we have four float values
             bounds = [float(coord) for coord in viewport.split(",")]
             if len(bounds) != 4:
                 return {"error": "Viewport must have exactly 4 values: min_lat,min_lon,max_lat,max_lon"}, 400
-            
-            pins = Pin.query.filter(
+
+            query = query.filter(
                 Pin.lat >= bounds[0],
                 Pin.lat <= bounds[2],
                 Pin.lng >= bounds[1],
                 Pin.lng <= bounds[3]
-            ).all()
+            )
         except ValueError:
             return {"error": "Viewport values must be valid numbers"}, 400
-    
+
+    # Filter by tag if provided (tags stored as JSON string)
+    if tag:
+        query = query.filter(Pin.tags.like(f'%"{tag}"%'))
+
+    pins = query.all()
+
     return jsonify([{
         "id": pin.id,
         "title": pin.title,
