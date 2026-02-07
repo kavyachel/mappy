@@ -1,36 +1,81 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { fetchPins, getCurrentPins } from '../../api/pins.js'
-
-const NYC_CENTER = [-74.0060, 40.7128]
-const DEFAULT_ZOOM = 12
-
-const GEOLOCATE_CONFIG = {
-  positionOptions: { enableHighAccuracy: true },
-  trackUserLocation: false,
-  showUserHeading: true,
-  fitBoundsOptions: { zoom: DEFAULT_ZOOM }
-}
+import { fetchPins } from '../../api/pins.js'
+import { createPopupHTML } from '../../utils/popup.js'
+import { NYC_CENTER, DEFAULT_ZOOM, GEOLOCATE_CONFIG } from '../../constants/map.js'
 
 function Map({ onLocationSelect, selectedLocation }) {
   const mapRef = useRef()
   const mapContainerRef = useRef()
   const tempMarkerRef = useRef(null)
   const userLocationRef = useRef(null)
+  const markersRef = useRef([])
+  const onLocationSelectRef = useRef(onLocationSelect)
 
-  const handleClick = (e) => {
-      const clickedLng = e.lngLat.lng
-      const clickedLat = e.lngLat.lat
-      const pins = getCurrentPins()
+  // Keep ref updated with latest callback
+  onLocationSelectRef.current = onLocationSelect
 
-      onLocationSelect({ lng: clickedLng, lat: clickedLat })
-  }
+  // Clear all pin markers from the map
+  const clearMarkers = useCallback(() => {
+    markersRef.current.forEach(marker => marker.remove())
+    markersRef.current = []
+  }, [])
 
+  // Add markers for pins
+  const addMarkers = useCallback((pins, map) => {
+    pins.forEach(pin => {
+      const marker = new mapboxgl.Marker({ color: "#3B82F6" })
+        .setLngLat([pin.lng, pin.lat])
+        .addTo(map)
+
+      marker.getElement().addEventListener('click', (e) => {
+        e.stopPropagation()
+
+        new mapboxgl.Popup({ offset: 25 })
+          .setLngLat([pin.lng, pin.lat])
+          .setHTML(createPopupHTML({
+            title: pin.title,
+            description: pin.description,
+            lng: pin.lng,
+            lat: pin.lat,
+            tags: pin.tags
+          }))
+          .addTo(map)
+
+        map.flyTo({
+          center: [pin.lng, pin.lat],
+          zoom: 16,
+          duration: 200
+        })
+      })
+
+      markersRef.current.push(marker)
+    })
+  }, [])
+
+  // Load pins for current viewport
+  const loadPins = useCallback(async (map) => {
+    try {
+      const bounds = map.getBounds()
+      const pins = await fetchPins({
+        south: bounds.getSouth(),
+        west: bounds.getWest(),
+        north: bounds.getNorth(),
+        east: bounds.getEast()
+      })
+
+      clearMarkers()
+      addMarkers(pins, map)
+    } catch (error) {
+      console.error('Error loading pins:', error)
+    }
+  }, [clearMarkers, addMarkers])
+
+  // Initialize map
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_PUBLIC_MAPBOX_TOKEN
 
-    // Initialize map
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       interactive: true,
@@ -40,39 +85,38 @@ function Map({ onLocationSelect, selectedLocation }) {
     })
     mapRef.current = map
 
-    // Ask user for location
-    const geolocate = new mapboxgl.GeolocateControl(GEOLOCATE_CONFIG)
+    const handleClick = (e) => {
+      onLocationSelectRef.current?.({ lng: e.lngLat.lng, lat: e.lngLat.lat })
+    }
 
+    const geolocate = new mapboxgl.GeolocateControl(GEOLOCATE_CONFIG)
     map.addControl(geolocate)
     map.on('click', handleClick)
 
-    // FIXME: useMemo for loadPins
-    const loadPins = () => fetchPins(map)
-
-    // FIXME: probs want to house the gelocate functionality seperate
     geolocate.on('geolocate', (e) => {
       userLocationRef.current = { lng: e.coords.longitude, lat: e.coords.latitude }
-      loadPins()
+      loadPins(map)
     })
+
     geolocate.on('error', () => {
       userLocationRef.current = { lng: NYC_CENTER[0], lat: NYC_CENTER[1] }
-      loadPins()
+      loadPins(map)
     })
-    
-    map.on('load', () => geolocate.trigger())
-    map.on('moveend', loadPins)
 
-    // Cleanup
+    map.on('load', () => geolocate.trigger())
+    map.on('moveend', () => loadPins(map))
+
     return () => {
+      clearMarkers()
       if (tempMarkerRef.current) {
         tempMarkerRef.current.remove()
       }
-      map.off('moveend', loadPins)
       map.off('click', handleClick)
       map.remove()
     }
-  }, [])
+  }, [loadPins, clearMarkers])
 
+  // Handle selected location changes
   useEffect(() => {
     if (!mapRef.current) return
 
@@ -80,34 +124,31 @@ function Map({ onLocationSelect, selectedLocation }) {
     tempMarkerRef.current?.remove()
     tempMarkerRef.current = null
 
-    //FIXME: This should not be in the useEffect either
     if (selectedLocation) {
-      // Zoom to selected location and show temp marker
       mapRef.current.flyTo({
         center: [selectedLocation.lng, selectedLocation.lat],
         zoom: 16,
         duration: 200
       })
 
-      tempMarkerRef.current = new mapboxgl.Marker({ 
+      tempMarkerRef.current = new mapboxgl.Marker({
         color: "#6B7280",
         anchor: 'bottom'
-       })
+      })
         .setLngLat([selectedLocation.lng, selectedLocation.lat])
         .addTo(mapRef.current)
-      
-      } else if (userLocationRef.current) {
-      // Reset to user location and reload pins
-      fetchPins(mapRef.current)
+
+    } else if (userLocationRef.current) {
+      loadPins(mapRef.current)
       mapRef.current.flyTo({
         center: [userLocationRef.current.lng, userLocationRef.current.lat],
         zoom: DEFAULT_ZOOM,
         duration: 500
       })
     }
-  }, [selectedLocation]);
+  }, [selectedLocation, loadPins])
 
-  return <div id='map-container' ref={mapContainerRef}/>
+  return <div id='map-container' ref={mapContainerRef} />
 }
 
 export default Map
