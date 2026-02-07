@@ -13,7 +13,16 @@ def create_pin():
     if not data.get("lat") or not data.get("lng"):
         return {"error": "Latitude and longitude required"}, 400
 
-    pin = Pin(title=data["title"], lat=data["lat"], lng=data["lng"])
+    pin = Pin(
+        title=data["title"],
+        description=data.get("description"),
+        lat=data["lat"],
+        lng=data["lng"]
+    )
+    
+    # Handle tags
+    if data.get("tags"):
+        pin.set_tags(data["tags"])
 
     db.session.add(pin)
     db.session.commit()
@@ -22,8 +31,10 @@ def create_pin():
     return jsonify({
         "id": pin.id,
         "title": pin.title,
+        "description": pin.description,
         "lat": pin.lat,
         "lng": pin.lng,
+        "tags": pin.get_tags(),
         "created_at": pin.created_at.isoformat()
     }), 201
 
@@ -37,8 +48,10 @@ def retrieve_pin(id):
     return jsonify({
         "id": pin.id,
         "title": pin.title,
+        "description": pin.description,
         "lat": pin.lat,
         "lng": pin.lng,
+        "tags": pin.get_tags(),
         "created_at": pin.created_at.isoformat()
     }), 200
 
@@ -68,8 +81,10 @@ def retrieve_all_pins():
     return jsonify([{
         "id": pin.id,
         "title": pin.title,
+        "description": pin.description,
         "lat": pin.lat,
         "lng": pin.lng,
+        "tags": pin.get_tags(),
         "created_at": pin.created_at.isoformat()
     } for pin in pins]), 200
 
