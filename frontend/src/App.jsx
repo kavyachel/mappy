@@ -1,66 +1,52 @@
-import { useRef, useEffect } from 'react'
-import mapboxgl from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { useState } from 'react'
 import './App.css'
-import { fetchPins, addPin } from '../api/pins.js';
+import Map from './components/Map/Map'
+import PinForm from './components/PinForm/PinForm'
+import { addPin } from '../api/pins.js'
+import Sidebar from './components/Sidebar/Sidebar.jsx'
 
 function App() {
-  const mapRef = useRef()
-  const mapContainerRef = useRef()
+  const [selectedLocation, setSelectedLocation] = useState(null)
+  const [showForm, setShowForm] = useState(false)
 
-  const handleMapClick = ({e, map}) => {
-    const { lng, lat } = e.lngLat;
-    addPin({ map, lng, lat });
+  const handleMapClick = (location) => {
+    setSelectedLocation(location)
+    setShowForm(true)
   }
 
-  useEffect(() => {
-    mapboxgl.accessToken = import.meta.env.VITE_PUBLIC_MAPBOX_TOKEN;
+  const handlePinSubmit = async (pin) => {
+    try {
+      const resp = await addPin(pin)
 
-    // Grab the user's location
-    const geolocate = new mapboxgl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true
-      },
-      trackUserLocation: false,
-      showUserHeading: true,
-      fitBoundsOptions: {
-        zoom: 12
+      if (!resp) {
+        throw new Error('Failed to create pin')
       }
-    })
 
-    mapRef.current = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      interactive: true,
-      dragPan: true,
-      zoom: 12,
-    });
-
-    mapRef.current.addControl(geolocate);
-
-    mapRef.current.on('load', () => {
-      geolocate.trigger();
-      
-      // Wait for geolocate to finish before we fetch pins
-      setTimeout(() => {
-        fetchPins(mapRef.current);
-      }, 1000);
-    });
-
-    // Fetch pins when map moves/zooms
-    mapRef.current.on('moveend', () => {
-      fetchPins(mapRef.current);
-    });
-
-    mapRef.current.on('click', (e) => handleMapClick({e, map: mapRef.current}));
-
-    return () => {
-      mapRef.current.remove()
+      setShowForm(false)
+      setSelectedLocation(null)
+    } catch (error) {
+      console.error('Error creating pin:', error)
     }
-  }, [])
+  }
 
   return (
     <>
-      <div id='map-container' ref={mapContainerRef}/>
+      {showForm && (
+        <Sidebar>
+          <PinForm 
+            location={selectedLocation}
+            onSubmit={handlePinSubmit}
+            onClose={() => {
+              setShowForm(false)
+              setSelectedLocation(null)
+            }}
+          />
+        </Sidebar>
+      )}
+      <Map 
+        onLocationSelect={handleMapClick}
+        selectedLocation={selectedLocation}
+      />
     </>
   )
 }
