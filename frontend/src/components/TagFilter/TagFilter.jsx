@@ -1,0 +1,35 @@
+import { TAG_DEFINITIONS } from '../../data/tagDefinitions'
+import './TagFilter.css'
+
+function TagFilter({ selectedTag, onTagSelect }) {
+  return (
+    <div className="tag-filter">
+      <div className="tag-filter-scroll">
+        <button
+          className={`tag-filter-btn ${selectedTag === null ? 'active' : ''}`}
+          onClick={() => onTagSelect(null)}
+        >
+          All
+        </button>
+        {TAG_DEFINITIONS.map(tag => {
+          const Icon = tag.icon
+          return (
+            <button
+              key={tag.name}
+              className={`tag-filter-btn ${selectedTag === tag.name ? 'active' : ''}`}
+              onClick={() => onTagSelect(tag.name)}
+              style={{
+                '--tag-color': tag.color
+              }}
+            >
+              <Icon size={16} />
+              <span>{tag.name}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export default TagFilter
