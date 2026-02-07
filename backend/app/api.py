@@ -9,15 +9,27 @@ api = Blueprint("api", __name__)
 def create_pin():
     data = request.get_json()
 
-    # maybe improve error handling
-    if not data.get("lat") or not data.get("lng"):
-        return {"error": "Latitude and longitude required"}, 400
+    if data.get("lat") is None or data.get("lng") is None:
+        return {"error": "Latitude and longitude are required"}, 400
+
+    lat = data.get("lat")
+    lng = data.get("lng")
+
+    # Validate lat/lng ranges
+    if not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
+        return {"error": "Latitude and longitude must be numbers"}, 400
+
+    if lat < -90 or lat > 90:
+        return {"error": "Latitude must be between -90 and 90"}, 400
+
+    if lng < -180 or lng > 180:
+        return {"error": "Longitude must be between -180 and 180"}, 400
 
     pin = Pin(
-        title=data["title"],
+        title=data.get("title", "Untitled"),
         description=data.get("description"),
-        lat=data["lat"],
-        lng=data["lng"]
+        lat=lat,
+        lng=lng
     )
     
     # Handle tags
