@@ -1,7 +1,7 @@
 const API_BASE = 'http://localhost:5000/api'
 
-// Fetch pins within viewport bounds
-export const fetchPins = async (bounds) => {
+// Fetch pins within viewport bounds, optionally filtered by tag
+export const fetchPins = async (bounds, tag = null) => {
   const bbox = [
     bounds.south,
     bounds.west,
@@ -9,7 +9,12 @@ export const fetchPins = async (bounds) => {
     bounds.east
   ]
 
-  const response = await fetch(`${API_BASE}/pins?viewport=${bbox.join(',')}`)
+  const params = new URLSearchParams({ viewport: bbox.join(',') })
+  if (tag) {
+    params.append('tag', tag)
+  }
+
+  const response = await fetch(`${API_BASE}/pins?${params}`)
 
   if (!response.ok) {
     throw new Error('Failed to fetch pins')

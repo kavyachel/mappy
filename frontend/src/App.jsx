@@ -2,12 +2,14 @@ import { useState } from 'react'
 import './App.css'
 import Map from './components/Map/Map'
 import PinForm from './components/PinForm/PinForm'
+import TagFilter from './components/TagFilter/TagFilter'
 import { addPin } from './api/pins.js'
 import Sidebar from './components/Sidebar/Sidebar.jsx'
 
 function App() {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [showForm, setShowForm] = useState(false)
+  const [selectedTag, setSelectedTag] = useState(null)
 
   const handleMapClick = (location) => {
     setSelectedLocation(location)
@@ -31,9 +33,14 @@ function App() {
 
   return (
     <>
+      <TagFilter
+        selectedTag={selectedTag}
+        onTagSelect={setSelectedTag}
+      />
+
       {showForm && (
         <Sidebar>
-          <PinForm 
+          <PinForm
             location={selectedLocation}
             onSubmit={handlePinSubmit}
             onClose={() => {
@@ -43,10 +50,11 @@ function App() {
           />
         </Sidebar>
       )}
-      
-      <Map 
+
+      <Map
         onLocationSelect={handleMapClick}
         selectedLocation={selectedLocation}
+        selectedTag={selectedTag}
       />
     </>
   )

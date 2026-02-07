@@ -9,15 +9,27 @@ api = Blueprint("api", __name__)
 def create_pin():
     data = request.get_json()
 
-    # maybe improve error handling
-    if not data.get("lat") or not data.get("lng"):
-        return {"error": "Latitude and longitude required"}, 400
+    if data.get("lat") is None or data.get("lng") is None:
+        return {"error": "Latitude and longitude are required"}, 400
+
+    lat = data.get("lat")
+    lng = data.get("lng")
+
+    # Validate lat/lng ranges
+    if not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
+        return {"error": "Latitude and longitude must be numbers"}, 400
+
+    if lat < -90 or lat > 90:
+        return {"error": "Latitude must be between -90 and 90"}, 400
+
+    if lng < -180 or lng > 180:
+        return {"error": "Longitude must be between -180 and 180"}, 400
 
     pin = Pin(
-        title=data["title"],
+        title=data.get("title", "Untitled"),
         description=data.get("description"),
-        lat=data["lat"],
-        lng=data["lng"]
+        lat=lat,
+        lng=lng
     )
     
     # Handle tags
@@ -55,29 +67,36 @@ def retrieve_pin(id):
         "created_at": pin.created_at.isoformat()
     }), 200
 
-# Retrieve all pins by viewport
+# Retrieve all pins by viewport, optionally filtered by tag
 @api.route('/pins', methods=['GET'])
 def retrieve_all_pins():
     viewport = request.args.get('viewport')
-    # If no viewport is provided, return all pins
-    if not viewport:
-        pins = Pin.query.all()
-    else:
+    tag = request.args.get('tag')
+
+    query = Pin.query
+
+    # Filter by viewport if provided
+    if viewport:
         try:
-            # Ensure we have four float values
             bounds = [float(coord) for coord in viewport.split(",")]
             if len(bounds) != 4:
                 return {"error": "Viewport must have exactly 4 values: min_lat,min_lon,max_lat,max_lon"}, 400
-            
-            pins = Pin.query.filter(
+
+            query = query.filter(
                 Pin.lat >= bounds[0],
                 Pin.lat <= bounds[2],
                 Pin.lng >= bounds[1],
                 Pin.lng <= bounds[3]
-            ).all()
+            )
         except ValueError:
             return {"error": "Viewport values must be valid numbers"}, 400
-    
+
+    # Filter by tag if provided (tags stored as JSON string)
+    if tag:
+        query = query.filter(Pin.tags.like(f'%"{tag}"%'))
+
+    pins = query.all()
+
     return jsonify([{
         "id": pin.id,
         "title": pin.title,

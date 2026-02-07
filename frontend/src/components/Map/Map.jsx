@@ -5,16 +5,18 @@ import { fetchPins } from '../../api/pins.js'
 import { createPopupHTML } from '../../utils/popup.js'
 import { NYC_CENTER, DEFAULT_ZOOM, GEOLOCATE_CONFIG } from '../../constants/map.js'
 
-function Map({ onLocationSelect, selectedLocation }) {
+function Map({ onLocationSelect, selectedLocation, selectedTag }) {
   const mapRef = useRef()
   const mapContainerRef = useRef()
   const tempMarkerRef = useRef(null)
   const userLocationRef = useRef(null)
   const markersRef = useRef([])
   const onLocationSelectRef = useRef(onLocationSelect)
+  const selectedTagRef = useRef(selectedTag)
 
-  // Keep ref updated with latest callback
+  // Keep refs updated with latest values
   onLocationSelectRef.current = onLocationSelect
+  selectedTagRef.current = selectedTag
 
   // Clear all pin markers from the map
   const clearMarkers = useCallback(() => {
@@ -32,7 +34,7 @@ function Map({ onLocationSelect, selectedLocation }) {
       marker.getElement().addEventListener('click', (e) => {
         e.stopPropagation()
 
-        new mapboxgl.Popup({ offset: 25 })
+        const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
           .setLngLat([pin.lng, pin.lat])
           .setHTML(createPopupHTML({
             title: pin.title,
@@ -48,6 +50,16 @@ function Map({ onLocationSelect, selectedLocation }) {
           zoom: 16,
           duration: 200
         })
+
+        popup.on('close', () => {
+          if (userLocationRef.current) {
+            map.flyTo({
+              center: [userLocationRef.current.lng, userLocationRef.current.lat],
+              zoom: DEFAULT_ZOOM,
+              duration: 500
+            })
+          }
+        })
       })
 
       markersRef.current.push(marker)
@@ -58,12 +70,15 @@ function Map({ onLocationSelect, selectedLocation }) {
   const loadPins = useCallback(async (map) => {
     try {
       const bounds = map.getBounds()
-      const pins = await fetchPins({
-        south: bounds.getSouth(),
-        west: bounds.getWest(),
-        north: bounds.getNorth(),
-        east: bounds.getEast()
-      })
+      const pins = await fetchPins(
+        {
+          south: bounds.getSouth(),
+          west: bounds.getWest(),
+          north: bounds.getNorth(),
+          east: bounds.getEast()
+        },
+        selectedTagRef.current
+      )
 
       clearMarkers()
       addMarkers(pins, map)
@@ -147,6 +162,12 @@ function Map({ onLocationSelect, selectedLocation }) {
       })
     }
   }, [selectedLocation, loadPins])
+
+  // Reload pins when tag filter changes
+  useEffect(() => {
+    if (!mapRef.current) return
+    loadPins(mapRef.current)
+  }, [selectedTag, loadPins])
 
   return <div id='map-container' ref={mapContainerRef} />
 }

@@ -5,7 +5,7 @@
   padding: 6px 12px;
   border-radius: 16px;
   color: white;
-  font-size: 14px;
+  font-size: clamp(12px, 2.5vw, 14px);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -46,4 +46,19 @@
 
 .tag-remove:hover {
   transform: scale(1.2);
+}
+
+@media (max-width: 480px) {
+  .tag {
+    padding: 4px 10px;
+    gap: 4px;
+  }
+
+  .tag-icon {
+    font-size: 14px;
+  }
+
+  .tag-remove {
+    font-size: 18px;
+  }
 }
