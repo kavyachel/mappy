@@ -1,5 +1,5 @@
 import mapboxgl from 'mapbox-gl'
-import { createPopupHTML } from '../src/utils.js';
+import { createPopupHTML } from '../utils.js';
 
 // Store markers so we can remove them when refreshing
 let currentMarkers = []

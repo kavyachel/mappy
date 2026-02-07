@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { fetchPins, getCurrentPins } from '../../../api/pins.js'
+import { fetchPins, getCurrentPins } from '../../api/pins.js'
 
 const NYC_CENTER = [-74.0060, 40.7128]
 const DEFAULT_ZOOM = 12

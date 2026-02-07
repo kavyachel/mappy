@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import Map from './components/Map/Map'
 import PinForm from './components/PinForm/PinForm'
-import { addPin } from '../api/pins.js'
+import { addPin } from './api/pins.js'
 import Sidebar from './components/Sidebar/Sidebar.jsx'
 
 function App() {
