@@ -1,12 +1,15 @@
 import mapboxgl from 'mapbox-gl'
+import { createPopupHTML } from '../src/utils.js';
 
 // Store markers so we can remove them when refreshing
 let currentMarkers = []
+let currentPins = []
+
+// Get current pins
+export const getCurrentPins = () => currentPins
 
 // Fetch pins within the current map viewport
-export const fetchPins = async (map) => {
-    // Remove existing markers
-    currentMarkers.forEach(marker => marker.remove())
+export const fetchPins = async (map, userLocationRef) => {
     currentMarkers = []
 
     const bounds = map.getBounds();
@@ -23,6 +26,7 @@ export const fetchPins = async (map) => {
         throw new Error('Failed to fetch pins');
       }
       const pins = await response.json();
+      currentPins = pins
       
       // Add markers for fetched pins
       pins.forEach(pin => {
@@ -30,6 +34,28 @@ export const fetchPins = async (map) => {
           .setLngLat([pin.lng, pin.lat])
           .addTo(map);
         
+        marker.getElement().addEventListener('click', (e) => {
+          e.stopPropagation();
+          console.log('Pin clicked:', pin);
+          
+          new mapboxgl.Popup({offset: 25})
+            .setLngLat([pin.lng, pin.lat])
+            .setHTML(createPopupHTML({
+              title: pin.title,
+              description: pin.description,
+              lng: pin.lng,
+              lat: pin.lat,
+              tags: pin.tags
+            }))
+            .addTo(map);
+
+          map.flyTo({
+            center: [pin.lng, pin.lat],
+            zoom: 16,
+            duration: 200
+          })
+        });
+      
         currentMarkers.push(marker)
       });
       
