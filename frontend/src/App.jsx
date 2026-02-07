@@ -43,6 +43,7 @@ function App() {
           />
         </Sidebar>
       )}
+      
       <Map 
         onLocationSelect={handleMapClick}
         selectedLocation={selectedLocation}

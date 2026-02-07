@@ -1,0 +1,49 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tag-selectable {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.tag-selectable:hover {
+  opacity: 0.8;
+}
+
+.tag-selected {
+  opacity: 1;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+}
+
+.tag-icon {
+  font-size: 16px;
+}
+
+.tag-name {
+  font-family: monospace;
+}
+
+.tag-remove {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 4px;
+}
+
+.tag-remove:hover {
+  transform: scale(1.2);
+}
