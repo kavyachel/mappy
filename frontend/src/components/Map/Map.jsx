@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { fetchPins } from '../../../api/pins.js'
+import { fetchPins, getCurrentPins } from '../../../api/pins.js'
 
 const NYC_CENTER = [-74.0060, 40.7128]
 const DEFAULT_ZOOM = 12
@@ -19,6 +19,14 @@ function Map({ onLocationSelect, selectedLocation }) {
   const tempMarkerRef = useRef(null)
   const userLocationRef = useRef(null)
 
+  const handleClick = (e) => {
+      const clickedLng = e.lngLat.lng
+      const clickedLat = e.lngLat.lat
+      const pins = getCurrentPins()
+
+      onLocationSelect({ lng: clickedLng, lat: clickedLat })
+  }
+
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_PUBLIC_MAPBOX_TOKEN
 
@@ -30,17 +38,18 @@ function Map({ onLocationSelect, selectedLocation }) {
       center: NYC_CENTER,
       zoom: DEFAULT_ZOOM,
     })
-
     mapRef.current = map
 
     // Ask user for location
     const geolocate = new mapboxgl.GeolocateControl(GEOLOCATE_CONFIG)
 
     map.addControl(geolocate)
+    map.on('click', handleClick)
 
+    // FIXME: useMemo for loadPins
     const loadPins = () => fetchPins(map)
-    const handleClick = (e) => onLocationSelect({ lng: e.lngLat.lng, lat: e.lngLat.lat })
 
+    // FIXME: probs want to house the gelocate functionality seperate
     geolocate.on('geolocate', (e) => {
       userLocationRef.current = { lng: e.coords.longitude, lat: e.coords.latitude }
       loadPins()
@@ -52,7 +61,6 @@ function Map({ onLocationSelect, selectedLocation }) {
     
     map.on('load', () => geolocate.trigger())
     map.on('moveend', loadPins)
-    map.on('click', handleClick)
 
     // Cleanup
     return () => {
@@ -72,6 +80,7 @@ function Map({ onLocationSelect, selectedLocation }) {
     tempMarkerRef.current?.remove()
     tempMarkerRef.current = null
 
+    //FIXME: This should not be in the useEffect either
     if (selectedLocation) {
       // Zoom to selected location and show temp marker
       mapRef.current.flyTo({
@@ -80,10 +89,14 @@ function Map({ onLocationSelect, selectedLocation }) {
         duration: 200
       })
 
-      tempMarkerRef.current = new mapboxgl.Marker({ color: "#6B7280" })
+      tempMarkerRef.current = new mapboxgl.Marker({ 
+        color: "#6B7280",
+        anchor: 'bottom'
+       })
         .setLngLat([selectedLocation.lng, selectedLocation.lat])
         .addTo(mapRef.current)
-    } else if (userLocationRef.current) {
+      
+      } else if (userLocationRef.current) {
       // Reset to user location and reload pins
       fetchPins(mapRef.current)
       mapRef.current.flyTo({
@@ -92,7 +105,7 @@ function Map({ onLocationSelect, selectedLocation }) {
         duration: 500
       })
     }
-  }, [selectedLocation])
+  }, [selectedLocation]);
 
   return <div id='map-container' ref={mapContainerRef}/>
 }
