@@ -34,7 +34,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
       marker.getElement().addEventListener('click', (e) => {
         e.stopPropagation()
 
-        new mapboxgl.Popup({ offset: 25 })
+        const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
           .setLngLat([pin.lng, pin.lat])
           .setHTML(createPopupHTML({
             title: pin.title,
@@ -49,6 +49,16 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
           center: [pin.lng, pin.lat],
           zoom: 16,
           duration: 200
+        })
+
+        popup.on('close', () => {
+          if (userLocationRef.current) {
+            map.flyTo({
+              center: [userLocationRef.current.lng, userLocationRef.current.lat],
+              zoom: DEFAULT_ZOOM,
+              duration: 500
+            })
+          }
         })
       })
 
