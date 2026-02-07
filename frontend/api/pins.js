@@ -1,12 +1,13 @@
 import mapboxgl from 'mapbox-gl'
 
-// Store pins so we can remove them when refreshing
-let currentPins = []
+// Store markers so we can remove them when refreshing
+let currentMarkers = []
 
 // Fetch pins within the current map viewport
 export const fetchPins = async (map) => {
-    currentPins.forEach(pin => pin.remove())
-    currentPins = []
+    // Remove existing markers
+    currentMarkers.forEach(marker => marker.remove())
+    currentMarkers = []
 
     const bounds = map.getBounds();
     const bbox = [
@@ -23,12 +24,13 @@ export const fetchPins = async (map) => {
       }
       const pins = await response.json();
       
-      // Add pins for fetched pins
+      // Add markers for fetched pins
       pins.forEach(pin => {
         const marker = new mapboxgl.Marker({ color: "#3B82F6" })
           .setLngLat([pin.lng, pin.lat])
           .addTo(map);
-        currentPins.push(marker)
+        
+        currentMarkers.push(marker)
       });
       
       console.log('Fetched pins:', pins);
@@ -48,6 +50,8 @@ export const addPin = async (newPin) => {
       },
       body: JSON.stringify({
         title: newPin.title,
+        description: newPin.description,
+        tags: newPin.tags || [],
         lat: newPin.lat,
         lng: newPin.lng
       })

@@ -3,9 +3,10 @@
   left: 0;
   top: 0;
   bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  /**FIXME: probs don't want to hardcode **/
   width: 350px;
-  background: white;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  overflow-y: auto;
+  padding: 32px;
 }
