@@ -17,7 +17,7 @@ function TagFilter({ selectedTag, onTagSelect }) {
             <button
               key={tag.name}
               className={`tag-filter-btn ${selectedTag === tag.name ? 'active' : ''}`}
-              onClick={() => onTagSelect(tag.name)}
+              onClick={() => onTagSelect(selectedTag === tag.name ? null : tag.name)}
               style={{
                 '--tag-color': tag.color
               }}
