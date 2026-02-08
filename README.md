@@ -70,6 +70,8 @@ curl -X POST http://localhost:5000/api/pins \
 
 **Server-side tag filtering** - Tags are filtered on the backend rather than fetching all pins and filtering client-side. Scales better once you have thousands of pins, and it was a cleaner implementation.
 
+**Cached location** - Your last location is saved to localStorage so the map loads instantly where you left off instead of flying across the country from a default location.
+
 ## Project Structure
 
 ```
