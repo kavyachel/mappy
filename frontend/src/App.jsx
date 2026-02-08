@@ -32,7 +32,12 @@ function App() {
 
   return (
     <>
-      <TagFilter selectedTag={selectedTag} onTagSelect={setSelectedTag} />
+      <TagFilter
+        selectedTag={selectedTag}
+        onTagSelect={setSelectedTag}
+        collapsed={showForm}
+        onCircleClick={closeForm}
+      />
 
       {showForm && (
         <Sidebar onClose={closeForm}>

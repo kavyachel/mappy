@@ -18,7 +18,7 @@
 }
 
 .form-header h2 {
-  font-size: 20px;
+  font-size: 24px;
   margin: 0px;
   color: #1a1a1a;
 }
@@ -109,4 +109,86 @@
 
 .btn-primary:active {
   transform: translateY(0);
+}
+
+.add-tag-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-tag-btn:hover {
+  border-color: #007AD1;
+  color: #007AD1;
+}
+
+.custom-tag-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  background: white;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.custom-tag-input {
+  padding: 8px 10px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: monospace;
+}
+
+.custom-tag-input:focus {
+  outline: none;
+  border-color: #007AD1;
+}
+
+.color-swatches {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.color-swatch:hover {
+  transform: scale(1.1);
+}
+
+.color-swatch.selected {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+}
+
+.add-custom-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #007AD1;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: monospace;
+  cursor: pointer;
+}
+
+.add-custom-btn:hover {
+  background: #005FA3;
 }

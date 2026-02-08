@@ -5,14 +5,32 @@ import { fetchPins } from '../../api/pins.js'
 import { createPopupHTML } from '../../utils/popup.js'
 import { NYC_CENTER, DEFAULT_ZOOM, GEOLOCATE_CONFIG } from '../../constants/map.js'
 
+const LOCATION_CACHE_KEY = 'mappy_last_location'
+
+const getCachedLocation = () => {
+  try {
+    const cached = localStorage.getItem(LOCATION_CACHE_KEY)
+    if (cached) return JSON.parse(cached)
+  } catch {}
+  return null
+}
+
+const setCachedLocation = (lng, lat) => {
+  try {
+    localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify({ lng, lat }))
+  } catch {}
+}
+
 function Map({ onLocationSelect, selectedLocation, selectedTag }) {
   const mapRef = useRef()
   const mapContainerRef = useRef()
   const tempMarkerRef = useRef(null)
   const userLocationRef = useRef(null)
   const markersRef = useRef([])
+  const popupRef = useRef(null)
   const onLocationSelectRef = useRef(onLocationSelect)
   const selectedTagRef = useRef(selectedTag)
+  const isFirstLocate = useRef(true)
 
   // Keep refs updated with latest values
   onLocationSelectRef.current = onLocationSelect
@@ -34,6 +52,9 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
       marker.getElement().addEventListener('click', (e) => {
         e.stopPropagation()
 
+        // Close existing popup
+        popupRef.current?.remove()
+
         const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
           .setLngLat([pin.lng, pin.lat])
           .setHTML(createPopupHTML({
@@ -45,6 +66,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
           }))
           .addTo(map)
 
+        popupRef.current = popup
+
         map.flyTo({
           center: [pin.lng, pin.lat],
           zoom: 16,
@@ -52,6 +75,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
         })
 
         popup.on('close', () => {
+          popupRef.current = null
           if (userLocationRef.current) {
             map.flyTo({
               center: [userLocationRef.current.lng, userLocationRef.current.lat],
@@ -91,15 +115,23 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
   useEffect(() => {
     mapboxgl.accessToken = import.meta.env.VITE_PUBLIC_MAPBOX_TOKEN
 
+    const cached = getCachedLocation()
+    const initialCenter = cached ? [cached.lng, cached.lat] : NYC_CENTER
+
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       interactive: true,
       dragPan: true,
-      center: NYC_CENTER,
+      center: initialCenter,
       zoom: DEFAULT_ZOOM,
       style: 'mapbox://styles/kavyasub/cmlcjf8h9002y01sa5jf1ezw0'
     })
     mapRef.current = map
+
+    // Set initial user location from cache
+    if (cached) {
+      userLocationRef.current = cached
+    }
 
     const handleClick = (e) => {
       onLocationSelectRef.current?.({ lng: e.lngLat.lng, lat: e.lngLat.lat })
@@ -110,12 +142,29 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
     map.on('click', handleClick)
 
     geolocate.on('geolocate', (e) => {
-      userLocationRef.current = { lng: e.coords.longitude, lat: e.coords.latitude }
+      const lng = e.coords.longitude
+      const lat = e.coords.latitude
+      userLocationRef.current = { lng, lat }
+      setCachedLocation(lng, lat)
+
+      // Only fly if this is first locate and we started from a different spot
+      if (isFirstLocate.current) {
+        isFirstLocate.current = false
+        const center = map.getCenter()
+        const distance = Math.abs(center.lng - lng) + Math.abs(center.lat - lat)
+        if (distance > 0.01) {
+          map.flyTo({ center: [lng, lat], zoom: DEFAULT_ZOOM, duration: 500 })
+        }
+      }
+
       loadPins(map)
     })
 
     geolocate.on('error', () => {
-      userLocationRef.current = { lng: NYC_CENTER[0], lat: NYC_CENTER[1] }
+      if (!userLocationRef.current) {
+        userLocationRef.current = { lng: NYC_CENTER[0], lat: NYC_CENTER[1] }
+      }
+      isFirstLocate.current = false
       loadPins(map)
     })
 
@@ -164,6 +213,19 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
   // Reload pins when tag filter changes
   useEffect(() => {
     if (!mapRef.current) return
+
+    // Close any open popup and fly to user location
+    popupRef.current?.remove()
+    popupRef.current = null
+
+    if (userLocationRef.current) {
+      mapRef.current.flyTo({
+        center: [userLocationRef.current.lng, userLocationRef.current.lat],
+        zoom: DEFAULT_ZOOM,
+        duration: 500
+      })
+    }
+
     loadPins(mapRef.current)
   }, [selectedTag, loadPins])
 
