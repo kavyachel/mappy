@@ -1,10 +1,13 @@
 import './Sidebar.css'
 
-function Sidebar({ children }) {
+function Sidebar({ children, onClose }) {
   return (
-    <div className="sidebar">
-      {children}
-    </div>
+    <>
+      <div className="sidebar-overlay" onClick={onClose} />
+      <div className="sidebar">
+        {children}
+      </div>
+    </>
   )
 }
 

@@ -3,13 +3,18 @@ import './App.css'
 import Map from './components/Map/Map'
 import PinForm from './components/PinForm/PinForm'
 import TagFilter from './components/TagFilter/TagFilter'
-import { addPin } from './api/pins.js'
-import Sidebar from './components/Sidebar/Sidebar.jsx'
+import Sidebar from './components/Sidebar/Sidebar'
+import { addPin } from './api/pins'
 
 function App() {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [selectedTag, setSelectedTag] = useState(null)
+
+  const closeForm = () => {
+    setShowForm(false)
+    setSelectedLocation(null)
+  }
 
   const handleMapClick = (location) => {
     setSelectedLocation(location)
@@ -18,14 +23,8 @@ function App() {
 
   const handlePinSubmit = async (pin) => {
     try {
-      const resp = await addPin(pin)
-
-      if (!resp) {
-        throw new Error('Failed to create pin')
-      }
-
-      setShowForm(false)
-      setSelectedLocation(null)
+      await addPin(pin)
+      closeForm()
     } catch (error) {
       console.error('Error creating pin:', error)
     }
@@ -33,20 +32,14 @@ function App() {
 
   return (
     <>
-      <TagFilter
-        selectedTag={selectedTag}
-        onTagSelect={setSelectedTag}
-      />
+      <TagFilter selectedTag={selectedTag} onTagSelect={setSelectedTag} />
 
       {showForm && (
-        <Sidebar>
+        <Sidebar onClose={closeForm}>
           <PinForm
             location={selectedLocation}
             onSubmit={handlePinSubmit}
-            onClose={() => {
-              setShowForm(false)
-              setSelectedLocation(null)
-            }}
+            onClose={closeForm}
           />
         </Sidebar>
       )}
@@ -60,4 +53,4 @@ function App() {
   )
 }
 
-export default App;
+export default App

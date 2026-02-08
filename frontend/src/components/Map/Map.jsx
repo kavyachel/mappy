@@ -27,7 +27,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
   // Add markers for pins
   const addMarkers = useCallback((pins, map) => {
     pins.forEach(pin => {
-      const marker = new mapboxgl.Marker({ color: "#3B82F6" })
+      const marker = new mapboxgl.Marker({ color: '#007AD1' })
         .setLngLat([pin.lng, pin.lat])
         .addTo(map)
 
@@ -97,6 +97,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
       dragPan: true,
       center: NYC_CENTER,
       zoom: DEFAULT_ZOOM,
+      style: 'mapbox://styles/kavyasub/cmlcjf8h9002y01sa5jf1ezw0'
     })
     mapRef.current = map
 
@@ -146,10 +147,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
         duration: 200
       })
 
-      tempMarkerRef.current = new mapboxgl.Marker({
-        color: "#6B7280",
-        anchor: 'bottom'
-      })
+      tempMarkerRef.current = new mapboxgl.Marker({ color: '#6B7280' })
         .setLngLat([selectedLocation.lng, selectedLocation.lat])
         .addTo(mapRef.current)
 

@@ -5,8 +5,8 @@
   padding: 6px 12px;
   border-radius: 16px;
   color: white;
-  font-size: clamp(12px, 2.5vw, 14px);
-  font-weight: 500;
+  font-size: 13px;
+  font-family: monospace;
   white-space: nowrap;
 }
 
@@ -25,40 +25,17 @@
   box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
 }
 
-.tag-icon {
-  font-size: 16px;
-}
-
-.tag-name {
-  font-family: monospace;
-}
-
 .tag-remove {
   background: none;
   border: none;
   color: white;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
   padding: 0;
-  margin-left: 4px;
+  margin-left: 2px;
 }
 
 .tag-remove:hover {
-  transform: scale(1.2);
-}
-
-@media (max-width: 480px) {
-  .tag {
-    padding: 4px 10px;
-    gap: 4px;
-  }
-
-  .tag-icon {
-    font-size: 14px;
-  }
-
-  .tag-remove {
-    font-size: 18px;
-  }
+  transform: scale(1.1);
 }
