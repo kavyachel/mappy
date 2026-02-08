@@ -1,4 +1,4 @@
-import { TAG_DEFINITIONS } from '../../data/tagDefinitions'
+import { TAG_DEFINITIONS } from '../../constants/tagDefinitions'
 import './TagFilter.css'
 
 function TagFilter({ selectedTag, onTagSelect }) {

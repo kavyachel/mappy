@@ -1,5 +1,5 @@
 import './Tag.css'
-import { getTagDefinition } from '../../data/tagDefinitions'
+import { getTagDefinition } from '../../constants/tagDefinitions'
 
 function Tag({ name, onRemove, selectable, selected, onToggle }) {
   const definition = getTagDefinition(name)
@@ -18,7 +18,7 @@ function Tag({ name, onRemove, selectable, selected, onToggle }) {
       style={{ backgroundColor: definition?.color || '#95A5A6' }}
     >
       {Icon && <Icon className="tag-icon" />}
-      <span className="tag-name">{name}</span>
+      <span>{name}</span>
       {onRemove && (
         <button 
           className="tag-remove" 
