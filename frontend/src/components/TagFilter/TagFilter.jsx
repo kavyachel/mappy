@@ -1,17 +1,16 @@
 import { MdMenu } from 'react-icons/md'
-import { TAG_DEFINITIONS, getTagDefinition } from '../../constants/tagDefinitions'
 import './TagFilter.css'
 
-function TagFilter({ selectedTag, onTagSelect, collapsed, onCircleClick }) {
-  const selectedDef = selectedTag ? getTagDefinition(selectedTag) : null
-  const SelectedIcon = selectedDef?.icon
+function TagFilter({ selectedTag, onTagSelect, collapsed, onCircleClick, tags = [] }) {
+  const selectedTagDef = tags.find(t => t.name === selectedTag)
+  const SelectedIcon = selectedTagDef?.icon
 
   return (
     <div className={`tag-filter ${collapsed ? 'collapsed' : ''}`}>
       {collapsed ? (
         <div
           className="tag-filter-circle"
-          style={{ background: selectedDef?.color || '#007AD1' }}
+          style={selectedTagDef ? { background: selectedTagDef.color } : undefined}
           onClick={onCircleClick}
         >
           {SelectedIcon ? <SelectedIcon size={20} /> : <MdMenu size={20} />}
@@ -24,7 +23,7 @@ function TagFilter({ selectedTag, onTagSelect, collapsed, onCircleClick }) {
           >
             All
           </button>
-          {TAG_DEFINITIONS.map(tag => {
+          {tags.map(tag => {
             const Icon = tag.icon
             return (
               <button
@@ -33,7 +32,7 @@ function TagFilter({ selectedTag, onTagSelect, collapsed, onCircleClick }) {
                 onClick={() => onTagSelect(selectedTag === tag.name ? null : tag.name)}
                 style={{ '--tag-color': tag.color }}
               >
-                <Icon size={16} />
+                {Icon ? <Icon size={16} /> : <span className="tag-dot" style={{ background: tag.color }} />}
                 <span>{tag.name}</span>
               </button>
             )

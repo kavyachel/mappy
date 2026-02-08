@@ -2,20 +2,28 @@ import { Formik, Form, Field, ErrorMessage } from 'formik'
 import { useState } from 'react'
 import { IoClose, IoAdd } from 'react-icons/io5'
 import Tag from '../Tag/Tag'
-import { TAG_DEFINITIONS } from '../../constants/tagDefinitions'
+import { createTag } from '../../api/pins'
 import './PinForm.css'
 
-const CUSTOM_TAG_COLORS = [
+const NEW_TAG_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
   '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
 ]
 
-function PinForm({ location, onSubmit, onClose }) {
+const validateTagName = (name) => {
+  if (!name) return 'Tag name is required'
+  if (name.length < 2) return 'Tag name must be at least 2 characters'
+  if (name.length > 30) return 'Tag name must be 30 characters or less'
+  if (!/^[a-zA-Z0-9 ]+$/.test(name)) return 'Letters, numbers, and spaces only'
+  return null
+}
+
+function PinForm({ location, onSubmit, onClose, tags = [], onTagCreated }) {
   const [selectedTags, setSelectedTags] = useState([])
-  const [customTags, setCustomTags] = useState({}) // { name: color }
-  const [showCustomForm, setShowCustomForm] = useState(false)
-  const [customName, setCustomName] = useState('')
-  const [customColor, setCustomColor] = useState(CUSTOM_TAG_COLORS[0])
+  const [showNewTagForm, setShowNewTagForm] = useState(false)
+  const [newTagName, setNewTagName] = useState('')
+  const [newTagColor, setNewTagColor] = useState(NEW_TAG_COLORS[0])
+  const [tagError, setTagError] = useState(null)
 
   const toggleTag = (name) => {
     setSelectedTags(prev =>
@@ -23,16 +31,37 @@ function PinForm({ location, onSubmit, onClose }) {
     )
   }
 
-  const addCustomTag = () => {
-    const name = customName.trim()
-    if (!name) return
-    if (selectedTags.includes(name)) return
+  const addNewTag = async () => {
+    const name = newTagName.trim()
+    setTagError(null)
 
-    setCustomTags(prev => ({ ...prev, [name]: customColor }))
-    setSelectedTags(prev => [...prev, name])
-    setCustomName('')
-    setCustomColor(CUSTOM_TAG_COLORS[0])
-    setShowCustomForm(false)
+    const validationError = validateTagName(name)
+    if (validationError) {
+      setTagError(validationError)
+      return
+    }
+
+    // Check if tag already exists (case-insensitive)
+    const exists = tags.some(t => t.name.toLowerCase() === name.toLowerCase())
+    if (exists) {
+      if (!selectedTags.some(t => t.toLowerCase() === name.toLowerCase())) {
+        setSelectedTags(prev => [...prev, tags.find(t => t.name.toLowerCase() === name.toLowerCase()).name])
+      }
+      setNewTagName('')
+      setShowNewTagForm(false)
+      return
+    }
+
+    try {
+      await createTag(name, newTagColor)
+      onTagCreated?.()
+      setSelectedTags(prev => [...prev, name])
+      setNewTagName('')
+      setNewTagColor(NEW_TAG_COLORS[0])
+      setShowNewTagForm(false)
+    } catch (error) {
+      setTagError('Failed to create tag')
+    }
   }
 
   return (
@@ -82,21 +111,27 @@ function PinForm({ location, onSubmit, onClose }) {
             <label>Tags</label>
             {selectedTags.length > 0 && (
               <div className="selected-tags">
-                {selectedTags.map(name => (
-                  <Tag
-                    key={name}
-                    name={name}
-                    color={customTags[name]}
-                    onRemove={toggleTag}
-                  />
-                ))}
+                {selectedTags.map(name => {
+                  const tagDef = tags.find(t => t.name === name)
+                  return (
+                    <Tag
+                      key={name}
+                      name={name}
+                      color={tagDef?.color}
+                      icon={tagDef?.icon}
+                      onRemove={toggleTag}
+                    />
+                  )
+                })}
               </div>
             )}
             <div className="available-tags">
-              {TAG_DEFINITIONS.map(tag => (
+              {tags.map(tag => (
                 <Tag
                   key={tag.name}
                   name={tag.name}
+                  color={tag.color}
+                  icon={tag.icon}
                   selectable
                   selected={selectedTags.includes(tag.name)}
                   onToggle={toggleTag}
@@ -105,34 +140,39 @@ function PinForm({ location, onSubmit, onClose }) {
               <button
                 type="button"
                 className="add-tag-btn"
-                onClick={() => setShowCustomForm(!showCustomForm)}
+                onClick={() => setShowNewTagForm(!showNewTagForm)}
               >
                 <IoAdd size={18} />
               </button>
             </div>
 
-            {showCustomForm && (
-              <div className="custom-tag-form">
+            {showNewTagForm && (
+              <div className="new-tag-form">
                 <input
                   type="text"
-                  className="custom-tag-input"
-                  placeholder="Tag name"
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
+                  className="new-tag-input"
+                  placeholder="Tag name (2-30 characters)"
+                  value={newTagName}
+                  maxLength={30}
+                  onChange={(e) => {
+                    setNewTagName(e.target.value)
+                    setTagError(null)
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addNewTag())}
                 />
+                {tagError && <div className="error-message">{tagError}</div>}
                 <div className="color-swatches">
-                  {CUSTOM_TAG_COLORS.map(color => (
+                  {NEW_TAG_COLORS.map(color => (
                     <button
                       key={color}
                       type="button"
-                      className={`color-swatch ${customColor === color ? 'selected' : ''}`}
+                      className={`color-swatch ${newTagColor === color ? 'selected' : ''}`}
                       style={{ backgroundColor: color }}
-                      onClick={() => setCustomColor(color)}
+                      onClick={() => setNewTagColor(color)}
                     />
                   ))}
                 </div>
-                <button type="button" className="add-custom-btn" onClick={addCustomTag}>
+                <button type="button" className="add-new-tag-btn" onClick={addNewTag}>
                   Add
                 </button>
               </div>

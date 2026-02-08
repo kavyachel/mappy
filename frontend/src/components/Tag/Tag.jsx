@@ -1,10 +1,7 @@
 import './Tag.css'
-import { getTagDefinition } from '../../constants/tagDefinitions'
 
-function Tag({ name, color, onRemove, selectable, selected, onToggle }) {
-  const definition = getTagDefinition(name)
-  const Icon = definition?.icon
-  const bgColor = color || definition?.color || '#95A5A6'
+function Tag({ name, color, icon: Icon, onRemove, selectable, selected, onToggle }) {
+  const bgColor = color || '#95A5A6'
 
   const handleClick = () => {
     if (selectable && onToggle) {

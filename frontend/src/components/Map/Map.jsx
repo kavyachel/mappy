@@ -21,7 +21,7 @@ const setCachedLocation = (lng, lat) => {
   } catch {}
 }
 
-function Map({ onLocationSelect, selectedLocation, selectedTag }) {
+function Map({ onLocationSelect, selectedLocation, selectedTag, tags = [] }) {
   const mapRef = useRef()
   const mapContainerRef = useRef()
   const tempMarkerRef = useRef(null)
@@ -30,11 +30,13 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
   const popupRef = useRef(null)
   const onLocationSelectRef = useRef(onLocationSelect)
   const selectedTagRef = useRef(selectedTag)
+  const tagsRef = useRef(tags)
   const isFirstLocate = useRef(true)
 
   // Keep refs updated with latest values
   onLocationSelectRef.current = onLocationSelect
   selectedTagRef.current = selectedTag
+  tagsRef.current = tags
 
   // Clear all pin markers from the map
   const clearMarkers = useCallback(() => {
@@ -62,7 +64,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
             description: pin.description,
             lng: pin.lng,
             lat: pin.lat,
-            tags: pin.tags
+            pinTags: pin.tags,
+            allTags: tagsRef.current
           }))
           .addTo(map)
 

@@ -45,3 +45,31 @@ export const addPin = async (pin) => {
 
   return response.json()
 }
+
+// Fetch all custom tags
+export const fetchTags = async () => {
+  const response = await fetch(`${API_BASE}/tags`)
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch tags')
+  }
+
+  return response.json()
+}
+
+// Create a custom tag
+export const createTag = async (name, color) => {
+  const response = await fetch(`${API_BASE}/tags`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name, color })
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to create tag')
+  }
+
+  return response.json()
+}

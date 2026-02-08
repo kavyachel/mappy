@@ -48,14 +48,14 @@
   border: 1.5px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   color: #1a1a1a;
   background: #fafafa;
 }
 
 .input-field:focus {
   outline: none;
-  border-color: #007AD1;
+  border-color: var(--color-primary);
   background: white;
 }
 
@@ -88,27 +88,35 @@
 }
 
 .btn-primary {
-  margin-top: 8px;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-primary);
+  border-radius: 9999px;
   font-size: 14px;
-  font-weight: 600;
-  font-family: monospace;
-  background: linear-gradient(135deg, #007AD1 0%, #005FA3 100%);
+  font-weight: 300;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  background: var(--color-primary);
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(41, 43, 45, 0.3);
+  transition: all 0.15s linear;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(41, 43, 45, 0.4);
+  background: #005FA3;
+  border-color: #005FA3;
 }
 
-.btn-primary:active {
-  transform: translateY(0);
+@media (min-width: 640px) {
+  .btn-primary {
+    padding: 12px 24px;
+  }
 }
 
 .add-tag-btn {
@@ -126,11 +134,11 @@
 }
 
 .add-tag-btn:hover {
-  border-color: #007AD1;
-  color: #007AD1;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
-.custom-tag-form {
+.new-tag-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -141,17 +149,17 @@
   border-radius: 10px;
 }
 
-.custom-tag-input {
+.new-tag-input {
   padding: 8px 10px;
   border: 1.5px solid #e5e7eb;
   border-radius: 6px;
   font-size: 14px;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
-.custom-tag-input:focus {
+.new-tag-input:focus {
   outline: none;
-  border-color: #007AD1;
+  border-color: var(--color-primary);
 }
 
 .color-swatches {
@@ -177,18 +185,18 @@
   box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
 }
 
-.add-custom-btn {
+.add-new-tag-btn {
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
-  background: #007AD1;
+  background: var(--color-primary);
   color: white;
   font-size: 13px;
   font-weight: 600;
-  font-family: monospace;
+  font-family: var(--font-mono);
   cursor: pointer;
 }
 
-.add-custom-btn:hover {
+.add-new-tag-btn:hover {
   background: #005FA3;
 }

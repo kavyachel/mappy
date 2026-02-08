@@ -23,7 +23,3 @@ export const TAG_DEFINITIONS = [
   { name: 'Bar', icon: MdLocalBar, color: '#34495E' },
   { name: 'Parking', icon: MdLocalParking, color: '#95A5A6' }
 ]
-
-export const getTagDefinition = (tagName) => {
-  return TAG_DEFINITIONS.find(tag => tag.name === tagName)
-}
