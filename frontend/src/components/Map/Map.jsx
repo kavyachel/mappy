@@ -11,6 +11,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
   const tempMarkerRef = useRef(null)
   const userLocationRef = useRef(null)
   const markersRef = useRef([])
+  const popupRef = useRef(null)
   const onLocationSelectRef = useRef(onLocationSelect)
   const selectedTagRef = useRef(selectedTag)
 
@@ -34,6 +35,9 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
       marker.getElement().addEventListener('click', (e) => {
         e.stopPropagation()
 
+        // Close existing popup
+        popupRef.current?.remove()
+
         const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
           .setLngLat([pin.lng, pin.lat])
           .setHTML(createPopupHTML({
@@ -45,6 +49,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
           }))
           .addTo(map)
 
+        popupRef.current = popup
+
         map.flyTo({
           center: [pin.lng, pin.lat],
           zoom: 16,
@@ -52,6 +58,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
         })
 
         popup.on('close', () => {
+          popupRef.current = null
           if (userLocationRef.current) {
             map.flyTo({
               center: [userLocationRef.current.lng, userLocationRef.current.lat],
@@ -164,6 +171,19 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
   // Reload pins when tag filter changes
   useEffect(() => {
     if (!mapRef.current) return
+
+    // Close any open popup and fly to user location
+    popupRef.current?.remove()
+    popupRef.current = null
+
+    if (userLocationRef.current) {
+      mapRef.current.flyTo({
+        center: [userLocationRef.current.lng, userLocationRef.current.lat],
+        zoom: DEFAULT_ZOOM,
+        duration: 500
+      })
+    }
+
     loadPins(mapRef.current)
   }, [selectedTag, loadPins])
 
