@@ -1,33 +1,45 @@
-import { TAG_DEFINITIONS } from '../../constants/tagDefinitions'
+import { MdMenu } from 'react-icons/md'
+import { TAG_DEFINITIONS, getTagDefinition } from '../../constants/tagDefinitions'
 import './TagFilter.css'
 
-function TagFilter({ selectedTag, onTagSelect }) {
+function TagFilter({ selectedTag, onTagSelect, collapsed, onCircleClick }) {
+  const selectedDef = selectedTag ? getTagDefinition(selectedTag) : null
+  const SelectedIcon = selectedDef?.icon
+
   return (
-    <div className="tag-filter">
-      <div className="tag-filter-scroll">
-        <button
-          className={`tag-filter-btn ${selectedTag === null ? 'active' : ''}`}
-          onClick={() => onTagSelect(null)}
+    <div className={`tag-filter ${collapsed ? 'collapsed' : ''}`}>
+      {collapsed ? (
+        <div
+          className="tag-filter-circle"
+          style={{ background: selectedDef?.color || '#007AD1' }}
+          onClick={onCircleClick}
         >
-          All
-        </button>
-        {TAG_DEFINITIONS.map(tag => {
-          const Icon = tag.icon
-          return (
-            <button
-              key={tag.name}
-              className={`tag-filter-btn ${selectedTag === tag.name ? 'active' : ''}`}
-              onClick={() => onTagSelect(selectedTag === tag.name ? null : tag.name)}
-              style={{
-                '--tag-color': tag.color
-              }}
-            >
-              <Icon size={16} />
-              <span>{tag.name}</span>
-            </button>
-          )
-        })}
-      </div>
+          {SelectedIcon ? <SelectedIcon size={20} /> : <MdMenu size={20} />}
+        </div>
+      ) : (
+        <div className="tag-filter-scroll">
+          <button
+            className={`tag-filter-btn ${selectedTag === null ? 'active' : ''}`}
+            onClick={() => onTagSelect(null)}
+          >
+            All
+          </button>
+          {TAG_DEFINITIONS.map(tag => {
+            const Icon = tag.icon
+            return (
+              <button
+                key={tag.name}
+                className={`tag-filter-btn ${selectedTag === tag.name ? 'active' : ''}`}
+                onClick={() => onTagSelect(selectedTag === tag.name ? null : tag.name)}
+                style={{ '--tag-color': tag.color }}
+              >
+                <Icon size={16} />
+                <span>{tag.name}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
