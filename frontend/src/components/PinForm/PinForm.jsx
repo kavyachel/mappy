@@ -1,17 +1,38 @@
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import { useState } from 'react'
-import { IoClose } from 'react-icons/io5'
+import { IoClose, IoAdd } from 'react-icons/io5'
 import Tag from '../Tag/Tag'
 import { TAG_DEFINITIONS } from '../../constants/tagDefinitions'
 import './PinForm.css'
 
+const CUSTOM_TAG_COLORS = [
+  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
+  '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
+]
+
 function PinForm({ location, onSubmit, onClose }) {
   const [selectedTags, setSelectedTags] = useState([])
+  const [customTags, setCustomTags] = useState({}) // { name: color }
+  const [showCustomForm, setShowCustomForm] = useState(false)
+  const [customName, setCustomName] = useState('')
+  const [customColor, setCustomColor] = useState(CUSTOM_TAG_COLORS[0])
 
   const toggleTag = (name) => {
     setSelectedTags(prev =>
       prev.includes(name) ? prev.filter(t => t !== name) : [...prev, name]
     )
+  }
+
+  const addCustomTag = () => {
+    const name = customName.trim()
+    if (!name) return
+    if (selectedTags.includes(name)) return
+
+    setCustomTags(prev => ({ ...prev, [name]: customColor }))
+    setSelectedTags(prev => [...prev, name])
+    setCustomName('')
+    setCustomColor(CUSTOM_TAG_COLORS[0])
+    setShowCustomForm(false)
   }
 
   return (
@@ -62,7 +83,12 @@ function PinForm({ location, onSubmit, onClose }) {
             {selectedTags.length > 0 && (
               <div className="selected-tags">
                 {selectedTags.map(name => (
-                  <Tag key={name} name={name} onRemove={toggleTag} />
+                  <Tag
+                    key={name}
+                    name={name}
+                    color={customTags[name]}
+                    onRemove={toggleTag}
+                  />
                 ))}
               </div>
             )}
@@ -76,7 +102,41 @@ function PinForm({ location, onSubmit, onClose }) {
                   onToggle={toggleTag}
                 />
               ))}
+              <button
+                type="button"
+                className="add-tag-btn"
+                onClick={() => setShowCustomForm(!showCustomForm)}
+              >
+                <IoAdd size={18} />
+              </button>
             </div>
+
+            {showCustomForm && (
+              <div className="custom-tag-form">
+                <input
+                  type="text"
+                  className="custom-tag-input"
+                  placeholder="Tag name"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
+                />
+                <div className="color-swatches">
+                  {CUSTOM_TAG_COLORS.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`color-swatch ${customColor === color ? 'selected' : ''}`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setCustomColor(color)}
+                    />
+                  ))}
+                </div>
+                <button type="button" className="add-custom-btn" onClick={addCustomTag}>
+                  Add
+                </button>
+              </div>
+            )}
           </div>
 
           <button type="submit" className="btn-primary">Save Pin</button>
