@@ -4,8 +4,10 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { fetchPins } from '../../api/pins.js'
 import { createPopupHTML } from '../../utils/popup.js'
 import { NYC_CENTER, DEFAULT_ZOOM, GEOLOCATE_CONFIG } from '../../constants/map.js'
+import { useAlert } from '../Alert/Alert'
 
 function Map({ onLocationSelect, selectedLocation, selectedTag }) {
+  const { showAlert } = useAlert()
   const mapRef = useRef()
   const mapContainerRef = useRef()
   const tempMarkerRef = useRef(null)
@@ -83,9 +85,9 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
       clearMarkers()
       addMarkers(pins, map)
     } catch (error) {
-      console.error('Error loading pins:', error)
+      showAlert('Failed to load pins')
     }
-  }, [clearMarkers, addMarkers])
+  }, [clearMarkers, addMarkers, showAlert])
 
   // Initialize map
   useEffect(() => {

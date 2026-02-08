@@ -4,12 +4,14 @@ import Map from './components/Map/Map'
 import PinForm from './components/PinForm/PinForm'
 import TagFilter from './components/TagFilter/TagFilter'
 import Sidebar from './components/Sidebar/Sidebar'
+import { AlertProvider, useAlert } from './components/Alert/Alert'
 import { addPin } from './api/pins'
 
-function App() {
+function AppContent() {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [selectedTag, setSelectedTag] = useState(null)
+  const { showAlert } = useAlert()
 
   const closeForm = () => {
     setShowForm(false)
@@ -26,7 +28,7 @@ function App() {
       await addPin(pin)
       closeForm()
     } catch (error) {
-      console.error('Error creating pin:', error)
+      showAlert('Failed to create pin')
     }
   }
 
@@ -50,6 +52,14 @@ function App() {
         selectedTag={selectedTag}
       />
     </>
+  )
+}
+
+function App() {
+  return (
+    <AlertProvider>
+      <AppContent />
+    </AlertProvider>
   )
 }
 
