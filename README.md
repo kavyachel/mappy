@@ -1,4 +1,4 @@
-# Mappy
+# 📍 Mappy
 
 A little map app where you can drop pins and tag places you want to remember. Click anywhere on the map, add a title and some tags, and it's saved.
 
