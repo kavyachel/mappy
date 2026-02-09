@@ -80,7 +80,7 @@ function AppContent() {
             <div className="sidebar-divider" />
             <div className="sidebar-content-list">
               {pinsLoading ? (
-                <div className="pins-loading">Loading pins...</div>
+                <div className="loading"></div>
               ) : (
                 <PinList pins={pins} onPinClick={handlePinClick} onPinDelete={handlePinDelete} />
               )}
