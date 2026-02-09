@@ -1,7 +1,8 @@
-import { TAG_DEFINITIONS } from '../../constants/tagDefinitions'
+import { useEffect } from 'react'
+import { TAG_ICONS } from '../../constants/tagIcons'
 import './TagFilter.css'
 
-function TagFilter({ selectedTag, onTagSelect }) {
+function TagFilter({ tags, selectedTag, onTagSelect }) {
   return (
     <div className="tag-filter">
       <div className="tag-filter-scroll">
@@ -11,8 +12,8 @@ function TagFilter({ selectedTag, onTagSelect }) {
         >
           All
         </button>
-        {TAG_DEFINITIONS.map(tag => {
-          const Icon = tag.icon
+        {tags.map(tag => {
+          const Icon = TAG_ICONS[tag.name]
           return (
             <button
               key={tag.name}
@@ -20,7 +21,7 @@ function TagFilter({ selectedTag, onTagSelect }) {
               onClick={() => onTagSelect(selectedTag === tag.name ? null : tag.name)}
               style={{ '--tag-color': tag.color }}
             >
-              <Icon size={14} />
+              {Icon && <Icon size={14} />}
               <span>{tag.name}</span>
             </button>
           )

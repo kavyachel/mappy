@@ -14,4 +14,7 @@ class Pin(db.Model):
     def set_tags(self, tags_list):
         self.tags = json.dumps(tags_list) if tags_list else None
 
-
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), unique=True, nullable=False)
+    color = db.Column(db.String(7), nullable=False)  # Hex color code
