@@ -1,18 +1,5 @@
-import { TAG_DEFINITIONS } from '../constants/tagDefinitions'
-
-const getTagColor = (tagName) => {
-  const def = TAG_DEFINITIONS.find(t => t.name === tagName)
-  return def?.color || '#95A5A6'
-}
-
 export function createPopupHTML({ title, description, lng, lat, tags }) {
-  const getTagName = (tag) => {
-    if (typeof tag === 'string') return tag
-    if (tag?.name) return tag.name
-    return null
-  }
-
-  const validTags = (tags || []).map(getTagName).filter(Boolean)
+  const validTags = (tags || []).filter(tag => tag?.name)
 
   return `
     <div style="font-family: monospace; min-width: 300px; padding: 16px;">
@@ -31,14 +18,14 @@ export function createPopupHTML({ title, description, lng, lat, tags }) {
         <div style="display: flex; flex-wrap: wrap; gap: 6px;">
           ${validTags.map(tag => `
             <span style="
-              background: ${getTagColor(tag)};
+              background: ${tag.color || '#95A5A6'};
               color: white;
               font-size: 12px;
               padding: 4px 8px;
               border-radius: 999px;
               font-weight: 500;
               white-space: nowrap;
-            ">${tag}</span>
+            ">${tag.name}</span>
           `).join('')}
         </div>
       ` : ''}

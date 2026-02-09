@@ -1,16 +1,14 @@
-import { getTagDefinition } from '../../constants/tagDefinitions'
 import './PinCard.css'
 
 function PinCard({ pin, onClick }) {
   const firstTag = pin.tags?.[0]
-  const def = firstTag ? getTagDefinition(firstTag) : null
 
   return (
     <div className="pin-card" onClick={() => onClick(pin)}>
       <div className="pin-card-row">
-        {def && (
-          <span className="pin-card-tag" style={{ background: def.color }}>
-            {firstTag}
+        {firstTag && (
+          <span className="pin-card-tag" style={{ background: firstTag.color }}>
+            {firstTag.name}
           </span>
         )}
         <span className="pin-card-title">{pin.title}</span>
