@@ -4,8 +4,10 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { fetchPins } from '../../api/pins.js'
 import { createPopupHTML } from '../../utils/popup.js'
 import { NYC_CENTER, DEFAULT_ZOOM, GEOLOCATE_CONFIG } from '../../constants/map.js'
+import { useAlert } from '../Alert/Alert'
 
 const LOCATION_CACHE_KEY = 'mappy_last_location'
+const SIDEBAR_PADDING = { left: 396, top: 0, right: 0, bottom: 0 }
 
 const getCachedLocation = () => {
   try {
@@ -21,7 +23,8 @@ const setCachedLocation = (lng, lat) => {
   } catch {}
 }
 
-function Map({ onLocationSelect, selectedLocation, selectedTag }) {
+function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, flyToPin }) {
+  const { showAlert } = useAlert()
   const mapRef = useRef()
   const mapContainerRef = useRef()
   const tempMarkerRef = useRef(null)
@@ -29,11 +32,13 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
   const markersRef = useRef([])
   const popupRef = useRef(null)
   const onLocationSelectRef = useRef(onLocationSelect)
+  const onPinsLoadedRef = useRef(onPinsLoaded)
   const selectedTagRef = useRef(selectedTag)
   const isFirstLocate = useRef(true)
 
   // Keep refs updated with latest values
   onLocationSelectRef.current = onLocationSelect
+  onPinsLoadedRef.current = onPinsLoaded
   selectedTagRef.current = selectedTag
 
   // Clear all pin markers from the map
@@ -106,10 +111,11 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
 
       clearMarkers()
       addMarkers(pins, map)
+      onPinsLoadedRef.current?.(pins)
     } catch (error) {
-      console.error('Error loading pins:', error)
+      showAlert('Failed to load pins')
     }
-  }, [clearMarkers, addMarkers])
+  }, [clearMarkers, addMarkers, showAlert])
 
   // Initialize map
   useEffect(() => {
@@ -193,7 +199,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
       mapRef.current.flyTo({
         center: [selectedLocation.lng, selectedLocation.lat],
         zoom: 16,
-        duration: 200
+        duration: 200,
+        padding: SIDEBAR_PADDING
       })
 
       tempMarkerRef.current = new mapboxgl.Marker({ color: '#6B7280' })
@@ -205,7 +212,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
       mapRef.current.flyTo({
         center: [userLocationRef.current.lng, userLocationRef.current.lat],
         zoom: DEFAULT_ZOOM,
-        duration: 500
+        duration: 500,
+        padding: SIDEBAR_PADDING
       })
     }
   }, [selectedLocation, loadPins])
@@ -228,6 +236,45 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
 
     loadPins(mapRef.current)
   }, [selectedTag, loadPins])
+
+  // Fly to a pin when clicked from PinList
+  useEffect(() => {
+    if (!mapRef.current || !flyToPin) return
+
+    popupRef.current?.remove()
+
+    const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
+      .setLngLat([flyToPin.lng, flyToPin.lat])
+      .setHTML(createPopupHTML({
+        title: flyToPin.title,
+        description: flyToPin.description,
+        lng: flyToPin.lng,
+        lat: flyToPin.lat,
+        tags: flyToPin.tags
+      }))
+      .addTo(mapRef.current)
+
+    popupRef.current = popup
+
+    mapRef.current.flyTo({
+      center: [flyToPin.lng, flyToPin.lat],
+      zoom: 16,
+      duration: 500,
+      padding: SIDEBAR_PADDING
+    })
+
+    popup.on('close', () => {
+      popupRef.current = null
+      if (userLocationRef.current) {
+        mapRef.current.flyTo({
+          center: [userLocationRef.current.lng, userLocationRef.current.lat],
+          zoom: DEFAULT_ZOOM,
+          duration: 500,
+          padding: SIDEBAR_PADDING
+        })
+      }
+    })
+  }, [flyToPin])
 
   return <div id='map-container' ref={mapContainerRef} />
 }

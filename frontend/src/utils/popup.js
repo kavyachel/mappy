@@ -16,7 +16,7 @@ export function createPopupHTML({ title, description, lng, lat, tags }) {
 
   return `
     <div style="font-family: monospace; min-width: 300px; padding: 16px;">
-      <h2 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; word-wrap: break-word;">
+      <h2 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600; word-wrap: break-word;">
         ${title}
       </h2>
       ${description ? `
@@ -33,7 +33,7 @@ export function createPopupHTML({ title, description, lng, lat, tags }) {
             <span style="
               background: ${getTagColor(tag)};
               color: white;
-              font-size: 11px;
+              font-size: 12px;
               padding: 4px 8px;
               border-radius: 999px;
               font-weight: 500;

@@ -18,7 +18,7 @@
 }
 
 .form-header h2 {
-  font-size: 24px;
+  font-size: 20px;
   margin: 0px;
   color: #1a1a1a;
 }
@@ -183,7 +183,7 @@
   border-radius: 6px;
   background: #007AD1;
   color: white;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   font-family: monospace;
   cursor: pointer;

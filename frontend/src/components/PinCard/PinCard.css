@@ -1,0 +1,45 @@
+.pin-card {
+  padding: 20px 22px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-family: monospace;
+}
+
+.pin-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.pin-card-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pin-card-tag {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pin-card-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pin-card-coords {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-top: 8px;
+}

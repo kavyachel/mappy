@@ -3,13 +3,18 @@ import './App.css'
 import Map from './components/Map/Map'
 import PinForm from './components/PinForm/PinForm'
 import TagFilter from './components/TagFilter/TagFilter'
+import PinList from './components/PinList/PinList'
 import Sidebar from './components/Sidebar/Sidebar'
+import { AlertProvider, useAlert } from './components/Alert/Alert'
 import { addPin } from './api/pins'
 
-function App() {
+function AppContent() {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [selectedTag, setSelectedTag] = useState(null)
+  const [pins, setPins] = useState([])
+  const [flyToPin, setFlyToPin] = useState(null)
+  const { showAlert } = useAlert()
 
   const closeForm = () => {
     setShowForm(false)
@@ -26,35 +31,53 @@ function App() {
       await addPin(pin)
       closeForm()
     } catch (error) {
-      console.error('Error creating pin:', error)
+      showAlert('Failed to create pin')
     }
+  }
+
+  const handlePinClick = (pin) => {
+    setFlyToPin(pin)
   }
 
   return (
     <>
-      <TagFilter
-        selectedTag={selectedTag}
-        onTagSelect={setSelectedTag}
-        collapsed={showForm}
-        onCircleClick={closeForm}
-      />
-
-      {showForm && (
-        <Sidebar onClose={closeForm}>
+      <Sidebar onClose={closeForm} showOverlay={showForm}>
+        {showForm ? (
           <PinForm
             location={selectedLocation}
             onSubmit={handlePinSubmit}
             onClose={closeForm}
           />
-        </Sidebar>
-      )}
+        ) : (
+          <>
+            <TagFilter
+              selectedTag={selectedTag}
+              onTagSelect={setSelectedTag}
+            />
+            <div className="sidebar-divider" />
+            <div className="sidebar-content-list">
+              <PinList pins={pins} onPinClick={handlePinClick} />
+            </div>
+          </>
+        )}
+      </Sidebar>
 
       <Map
         onLocationSelect={handleMapClick}
         selectedLocation={selectedLocation}
         selectedTag={selectedTag}
+        onPinsLoaded={setPins}
+        flyToPin={flyToPin}
       />
     </>
+  )
+}
+
+function App() {
+  return (
+    <AlertProvider>
+      <AppContent />
+    </AlertProvider>
   )
 }
 

@@ -139,7 +139,7 @@ function PinForm({ location, onSubmit, onClose }) {
             )}
           </div>
 
-          <button type="submit" className="btn-primary">Save Pin</button>
+          <button type="submit" className="btn-primary">SAVE PIN</button>
         </Form>
       </Formik>
     </div>
