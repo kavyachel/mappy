@@ -3,7 +3,7 @@ export function createPopupHTML({ title, description, location, lng, lat, tags }
 
   return `
     <div style="font-family: monospace; min-width: 300px; padding: 16px;">
-      <h2 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600; word-wrap: break-word;">
+      <h2 style="font-size: 20px; font-weight: 600; word-wrap: break-word;">
         ${title}
       </h2>
       ${description ? `

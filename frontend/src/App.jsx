@@ -6,7 +6,7 @@ import TagFilter from './components/TagFilter/TagFilter'
 import PinList from './components/PinList/PinList'
 import Sidebar from './components/Sidebar/Sidebar'
 import { AlertProvider, useAlert } from './components/Alert/Alert'
-import { addPin } from './api/pins'
+import { addPin, updatePin } from './api/pins'
 import { fetchTags } from './api/tags'
 
 function AppContent() {
@@ -17,6 +17,9 @@ function AppContent() {
   const [pins, setPins] = useState([])
   const [flyToPin, setFlyToPin] = useState(null)
   const [tags, setTags] = useState([])
+  const [mapRefreshKey, setMapRefreshKey] = useState(0)
+  const [pinsLoading, setPinsLoading] = useState(true)
+  const [editingPin, setEditingPin] = useState(null)
   const { showAlert } = useAlert()
 
   const refreshTags = useCallback(() => {
@@ -31,6 +34,7 @@ function AppContent() {
     setShowForm(false)
     setSelectedLocation(null)
     setSelectedTag(null)
+    setEditingPin(null)
   }
 
   const handleMapClick = (location) => {
@@ -40,11 +44,26 @@ function AppContent() {
 
   const handlePinSubmit = async (pin) => {
     try {
-      await addPin(pin)
+      if (editingPin) {
+        await updatePin(editingPin.id, pin)
+      } else {
+        await addPin(pin)
+      }
       closeForm()
     } catch (error) {
-      showAlert('Failed to create pin')
+      showAlert(editingPin ? 'Failed to update pin' : 'Failed to create pin')
     }
+  }
+
+  const handlePinEdit = (pin) => {
+    setEditingPin(pin)
+    setSelectedLocation({ lat: pin.lat, lng: pin.lng })
+    setShowForm(true)
+  }
+
+  const handlePinDelete = (pinId) => {
+    setPins(prev => prev.filter(p => p.id !== pinId))
+    setMapRefreshKey(prev => prev + 1)
   }
 
   const handlePinClick = (pin) => {
@@ -61,6 +80,7 @@ function AppContent() {
             onClose={closeForm}
             tags={tags}
             onTagCreated={refreshTags}
+            pin={editingPin}
           />
         ) : (
           <> 
@@ -72,7 +92,11 @@ function AppContent() {
             />
             <div className="sidebar-divider" />
             <div className="sidebar-content-list">
-              <PinList pins={pins} onPinClick={handlePinClick} />
+              {pinsLoading ? (
+                <div className="loading"></div>
+              ) : (
+                <PinList pins={pins} onPinClick={handlePinClick} onPinDelete={handlePinDelete} onPinEdit={handlePinEdit} />
+              )}
             </div>
           </>
         )}
@@ -85,6 +109,8 @@ function AppContent() {
         onPinsLoaded={setPins}
         flyToPin={flyToPin}
         setIsSidebarOpen={setIsSidebarOpen}
+        refreshKey={mapRefreshKey}
+        setPinsLoading={setPinsLoading}
       />
     </>
   )

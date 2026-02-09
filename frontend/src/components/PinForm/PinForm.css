@@ -1,20 +1,9 @@
 .pin-form {
   display: flex;
   flex-direction: column;
-}
-
-.close-btn {
-  display: block;
-  margin-left: auto;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #6b7280;
-  padding: 0;
-}
-
-.close-btn:hover {
-  color: #374151;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .form {
@@ -26,13 +15,25 @@
 
 .form-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
 }
 
-.form-header h2 {
+.form-header p {
+  margin-top: 2px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.form-title h2 {
   font-size: 26px;
 }
+
+.form-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
 
 .form-group {
   display: flex;
@@ -91,43 +92,15 @@
   border-radius: 10px;
 }
 
-.btn-primary {
+.pin-form .btn {
   margin-top: 8px;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  font-family: monospace;
-  letter-spacing: 0.2em;
-  background: linear-gradient(135deg, #007AD1 0%, #005FA3 100%);
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(41, 43, 45, 0.3);
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(41, 43, 45, 0.4);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
 }
 
 .add-tag-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 32px;
   border: 2px dashed #cbd5e1;
   border-radius: 16px;
-  background: none;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .add-tag-btn:hover {
@@ -182,18 +155,3 @@
   box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
 }
 
-.add-custom-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  background: #007AD1;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: monospace;
-  cursor: pointer;
-}
-
-.add-custom-btn:hover {
-  background: #005FA3;
-}

@@ -1,6 +1,6 @@
-# 📍 Mappy
+# 🗺️ Mappy
 
-A little map app where you can drop pins and tag places you want to remember. Click anywhere on the map, add a title and some tags, and it's saved.
+A little map app where you can drop pins and tag places you want to remember. Click anywhere on the map, add a title and some tags, and it's saved. You can edit and delete pins too, filter by tag, and the sidebar stays in sync with whatever's on screen.
 
 Built with React + Mapbox on the frontend and Flask + SQLite on the backend.
 
@@ -18,7 +18,7 @@ pip install -r requirements.txt
 python run.py
 ```
 
-Runs on `http://localhost:5000`.
+Runs on `http://localhost:5001`.
 
 ### Frontend
 
@@ -42,151 +42,163 @@ npm run dev
 
 Runs on `http://localhost:5173`.
 
+## How It's Built
+
+### Frontend
+
+Single-page React app with Vite. There's no router — the whole UI is just the map and a sidebar. State lives in `App.jsx` and flows down through props. I didn't reach for Redux or Zustand because the state graph is small enough that prop drilling is honestly clearer than introducing a store.
+
+```
+App (state owner)
+├── Sidebar (layout shell)
+│   ├── PinForm (create / edit)
+│   ├── TagFilter (filter bar)
+│   └── PinList → PinCard (pin listing)
+├── Map (Mapbox GL JS)
+└── AlertProvider (toast context)
+```
+
+The trickiest part was wiring React and Mapbox together. Mapbox event handlers get registered once on mount, but they need access to the latest React state — so I store callback props in refs that get updated each render. That way I'm not tearing down and rebuilding Mapbox listeners constantly, but the closures still have fresh values.
+
+Popup creation was another area that got messy fast. Clicking a marker and clicking a pin in the sidebar both need to open the same popup, fly to it, and wire up a close handler that flies back to the user's location. I pulled that into a `showPinPopup` helper inside the Map component, which cut out about 40 lines of duplication.
+
+For keeping the map in sync after mutations, I tried to keep it simple. When you create or edit a pin, closing the form sets `selectedLocation` back to `null`, and the Map already has an effect that reloads pins when that happens — so there's no extra refresh logic needed. Deleting is the one case where I need an explicit nudge (a `refreshKey` counter) since the form isn't involved.
+
+All buttons share one of three base classes (`btn-primary`, `btn-secondary`, `btn-icon`) defined in `App.css`, with component-level overrides only where needed. This avoids the thing where every component slowly drifts into its own button style.
+
+### Backend
+
+Flask + SQLAlchemy + SQLite. The API is one blueprint with standard REST endpoints. I didn't add a service layer or repository pattern — the route handlers just talk directly to the models, which is the right level of abstraction for two tables.
+
+Caching uses Flask-Caching with an in-memory dict. Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache. It's a blunt strategy, but with a single-process SQLite backend there's no real benefit to doing anything smarter.
+
+Tags are stored as a JSON string on the Pin row rather than in a normalized join table. That means tag filtering uses `LIKE '%"tagname"%'` which won't scale to millions of rows, but it avoids the complexity of a many-to-many relationship for what's essentially just a label. A `normalize_tags` helper handles backwards compatibility with an older format where tags were just strings instead of objects.
+
 ## API
 
 | Method | Endpoint | What it does |
 |--------|----------|--------------|
-| GET | `/api/pins?viewport=minLat,minLng,maxLat,maxLng` | Get pins in view |
+| GET | `/api/pins?viewport=s,w,n,e` | Pins in viewport bounds |
 | GET | `/api/pins?viewport=...&tag=Cafe` | Filter by tag |
-| GET | `/api/pins/<id>` | Get one pin |
-| POST | `/api/pins` | Create a pin |
-| DELETE | `/api/pins/<id>` | Delete a pin |
+| GET | `/api/pins/<id>` | Single pin |
+| POST | `/api/pins` | Create pin |
+| PUT | `/api/pins/<id>` | Update pin |
+| DELETE | `/api/pins/<id>` | Delete pin |
+| GET | `/api/tags` | All tags |
+| POST | `/api/tags` | Create tag |
 
-All requests require the `X-API-Key` header (see [Security](#security)).
-
-**Get pins in a viewport:**
+All requests need an `X-API-Key` header (see [Security](#security)).
 
 ```bash
+# Get pins in a viewport
 curl "http://localhost:5001/api/pins?viewport=40.70,-74.02,40.72,-73.99" \
   -H "X-API-Key: $API_KEY"
-```
 
-**Filter by tag:**
-
-```bash
-curl "http://localhost:5001/api/pins?viewport=40.70,-74.02,40.72,-73.99&tag=Cafe" \
-  -H "X-API-Key: $API_KEY"
-```
-
-**Get a single pin:**
-
-```bash
-curl "http://localhost:5001/api/pins/1" \
-  -H "X-API-Key: $API_KEY"
-```
-
-**Create a pin:**
-
-```bash
+# Create a pin
 curl -X POST http://localhost:5001/api/pins \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_KEY" \
-  -d '{"title": "Good coffee spot", "lat": 40.7128, "lng": -74.0060, "tags": [{"name": "Cafe", "color": "#8B4513"}]}'
-```
+  -d '{"title": "Good coffee", "lat": 40.7128, "lng": -74.006, "tags": [{"name": "Cafe", "color": "#8B4513"}]}'
 
-**Delete a pin:**
+# Update a pin
+curl -X PUT http://localhost:5001/api/pins/1 \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_KEY" \
+  -d '{"title": "Great coffee", "tags": [{"name": "Cafe", "color": "#8B4513"}]}'
 
-```bash
-curl -X DELETE "http://localhost:5001/api/pins/1" \
+# Delete a pin
+curl -X DELETE http://localhost:5001/api/pins/1 \
   -H "X-API-Key: $API_KEY"
 ```
 
 ## Why I Built It This Way
 
-**JavaScript over TypeScript** - Mapbox GL JS has a pretty rough TypeScript story — the types are community-maintained, the map instance typing is clunky, and a lot of the Mapbox examples and docs are plain JS. For a project this size the overhead of fighting type definitions wasn't worth it. If this grew significantly I'd consider migrating, but right now JS keeps things moving fast.
+**JavaScript over TypeScript** — Mapbox GL JS has a pretty rough TypeScript story. The types are community-maintained, the map instance typing is clunky, and most of the Mapbox docs and examples are plain JS. For a project this size the overhead of fighting type definitions wasn't worth it. If this grew significantly I'd consider migrating, but right now JS keeps things moving fast.
 
-**Mapbox over Google Maps** - I felt like Mapbox had an easier learning curve compared to it's map framework peers, and I wanted something highly customizable. The free tier (50k loads/month vs Google's limited quota) is also pretty generous.
+**Mapbox over Google Maps** — I felt like Mapbox had an easier learning curve, and I wanted something highly customizable. The free tier is generous (50k loads/month vs Google's limited quota), and the style editor made it easy to get a custom map look without writing CSS hacks.
 
-**SQLite over Postgres** - Zero setup, just a file. Perfect for a small project like this. If this ever needed to scale, I'd switch to Postgres with PostGIS for proper spatial queries.
+**SQLite over Postgres** — Zero setup, just a file. No server process to manage. If this ever needed to scale I'd switch to Postgres with PostGIS for proper spatial indexing — right now viewport queries are just `WHERE lat BETWEEN x AND y` which scans the table, but it's fast enough for thousands of pins.
 
-**Flask over FastAPI** - Flask is mature, battle-tested, and has a massive ecosystem. For a synchronous CRUD API like this there's no real benefit to FastAPI's async support — every request just hits SQLite and returns. Flask also has less magic: no Pydantic models, no dependency injection, just straightforward route handlers. FastAPI's auto-generated docs are nice, but not worth the extra abstractions for a project this small.
+**Flask over FastAPI** — Every request just hits SQLite and returns. There's no I/O concurrency to benefit from async. Flask has less magic — no Pydantic models, no dependency injection, just route handlers. FastAPI's auto-generated docs are nice, but not worth the extra abstractions for a project this small.
 
-**Server-side tag filtering** - Tags are filtered on the backend rather than fetching all pins and filtering client-side. Scales better once you have thousands of pins, and it was a cleaner implementation.
+**JSON tags instead of a join table** — Tags live as a JSON string on the Pin row: `[{"name":"Cafe","color":"#8B4513"}]`. That avoids a `pin_tags` join table and the N+1 problem that comes with it. The tradeoff is tag queries use `LIKE` matching, which won't scale to millions of rows. For a personal map app the simplicity wins.
 
-**Cached location** - Your last location is saved to localStorage so the map loads instantly where you left off instead of flying across the country from a default location.
+**Viewport-scoped queries** — Pins are only fetched for the visible map area, not all at once. The sidebar list and markers always reflect what's on screen. The frontend re-fetches on every `moveend` event, and the backend caches responses by rounded viewport coordinates so rapid panning doesn't hammer the database.
 
-## Database
+**Cached location** — Your last location is saved to `localStorage` so the map loads instantly where you left off instead of flying across the country from a default location while waiting for the geolocation API. If geolocation fails entirely, it falls back to NYC.
 
-SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/pins.db` — no server to install, no config, just works. SQLAlchemy's `create_all()` auto-creates the tables on first run.
-
-### Schema
-
-The `pin` table:
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | INTEGER | Primary key, auto-increment |
-| `title` | VARCHAR(50) | Pin name |
-| `description` | TEXT | Optional |
-| `lat` | FLOAT | Latitude |
-| `lng` | FLOAT | Longitude |
-| `tags` | TEXT | JSON string, e.g. `[{"name":"Cafe","color":"#8B4513"}]` |
-| `created_at` | DATETIME | Server default `now()` |
-
-Tags are stored as a JSON string rather than a separate table. This keeps the schema flat and avoids joins for what's essentially metadata. The tradeoff is you can't do efficient tag-specific queries at scale, but for a single-file SQLite database it's fine — a `LIKE '%"tagname"%'` filter works well enough.
-
-## Tags: Current State & Future
-
-Right now tags are split into two types:
-
-- **Built-in tags** (Restaurant, Cafe, Gym, etc.) — curated set with icons, shown in the filter bar
-- **Custom tags** — user-created with a chosen color, shown on pin cards and popups but **not** in the filter bar
-
-This is intentional for the current stage. Without user accounts, tags are crowdsourced — if every custom tag showed up in the filter bar, you'd quickly end up with hundreds of one-off tags cluttering the UI. So the filter bar stays clean with just the built-in set, and custom tags are purely descriptive labels on individual pins.
-
-Where this could go with user accounts:
-- **Per-user custom tags** that show up in *your* filter bar but not everyone else's
-- **Popular tags** that get promoted to the filter bar once they hit a usage threshold
-- **Tag management** — edit/delete/merge your custom tags
+**Server-side tag filtering** — Tags are filtered on the backend rather than fetching everything and filtering client-side. Scales better once you have a lot of pins. The filter bar only shows built-in tags — custom tags are descriptive labels on individual pins but don't clutter the filter UI. Without user accounts, if every custom tag showed up in the filter bar you'd quickly have hundreds of one-off tags.
 
 ## Security
 
-The API is protected by a shared API key. Every request must include an `X-API-Key` header — requests without it (or with the wrong key) get a `401 Unauthorized`.
-
-The key lives in `.env` on both sides:
-
-- **Backend** (`backend/.env`): `API_KEY=<key>`
-- **Frontend** (`frontend/.env`): `VITE_API_KEY=<key>`
-
-Both `.env` files are gitignored. To set it up, generate a key and add the same value to both:
+The API is protected by a shared API key. Every request needs an `X-API-Key` header — without it (or with the wrong key) you get a `401`. CORS is locked to the frontend origin, and both `.env` files are gitignored.
 
 ```bash
 # Generate a key
 python3 -c "import secrets; print(secrets.token_hex(32))"
 
-# Add to backend/.env
-API_KEY=your_generated_key
+# backend/.env
+API_KEY=your_key
 
-# Add to frontend/.env
-VITE_API_KEY=your_generated_key
+# frontend/.env
+VITE_API_KEY=your_key
 ```
 
-This means tools like Postman or bare `curl` calls won't work unless they include the header. CORS is also locked down to the frontend origin, so browsers won't even complete cross-origin requests from other domains.
+This is access control, not authentication — there are no user accounts or sessions. For a public deployment you'd want rate limiting and proper auth on top.
 
-**What this doesn't cover**: This is not authentication — there are no user accounts or sessions. The API key just gates access to the API itself. If this were deployed publicly, you'd want rate limiting and proper auth on top of this.
+## Database
+
+SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/pins.db` — no config, just works. Tables are auto-created on first run.
+
+**`pin`**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | INTEGER | Primary key, auto-increment |
+| title | VARCHAR(50) | Required |
+| description | TEXT | Optional |
+| location | VARCHAR(100) | Reverse-geocoded address |
+| lat | FLOAT | Latitude |
+| lng | FLOAT | Longitude |
+| tags | TEXT | JSON string: `[{"name":"Cafe","color":"#8B4513"}]` |
+| created_at | DATETIME | Server default |
+
+**`tag`**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | INTEGER | Primary key |
+| name | VARCHAR(20) | Unique |
+| color | VARCHAR(7) | Hex color |
+
+10 built-in tags are seeded on first run. Custom tags can be created from the pin form.
 
 ## Project Structure
 
 ```
 backend/
   app/
-    api.py        # endpoints
-    db.py         # database setup
-    models.py     # Pin model
-  instance/
-    pins.db       # the database
+    __init__.py    # Flask app factory, CORS, tag seeding
+    api.py         # REST endpoints
+    models.py      # Pin + Tag models
+    db.py          # SQLAlchemy setup
+    cache.py       # Flask-Caching setup
+    helpers.py     # Serialization, cache keys, tag normalization
+  run.py           # Entry point
 
 frontend/
   src/
-    api/          # API calls
-    components/   # Map, PinForm, PinCard, PinList, Sidebar, Tag, TagFilter
-    constants/    # map config, tag definitions
-    utils/        # popup helper
+    api/           # API client (pins, tags, mapbox geocoding)
+    components/    # Map, Sidebar, PinForm, PinCard, PinList, Tag, TagFilter, Alert
+    constants/     # Map config, tag icon mapping, US state abbreviations
+    utils/         # Popup HTML builder, location abbreviation
+    App.jsx        # Root component, state management
+    App.css        # Global styles + shared button system
 ```
 
-## What I would do next 
+## What I'd Do Next
 
-- [ ] Edit/update pins and delete pins
-- [ ] Image uploads on the Pin form
-- [ ] Search
+- [ ] Image uploads on pins
+- [ ] Search by title or location
 - [ ] Shareable pin URLs
+- [ ] User accounts with per-user pins and custom tag management

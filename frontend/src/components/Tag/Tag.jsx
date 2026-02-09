@@ -21,7 +21,7 @@ function Tag({ name, color, onRemove, selectable, selected, onToggle }) {
       <span>{name}</span>
       {onRemove && (
         <button
-          className="tag-remove"
+          className="btn-icon tag-remove"
           onClick={(e) => {
             e.stopPropagation()
             onRemove(name)

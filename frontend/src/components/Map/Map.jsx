@@ -25,7 +25,7 @@ const setCachedLocation = (lng, lat) => {
   } catch {}
 }
 
-function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, flyToPin, setIsSidebarOpen }) {
+function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, flyToPin, setIsSidebarOpen, refreshKey, setPinsLoading }) {
   const { showAlert } = useAlert()
   const mapRef = useRef()
   const mapContainerRef = useRef()
@@ -37,9 +37,11 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
   const onPinsLoadedRef = useRef(onPinsLoaded)
   const selectedTagRef = useRef(selectedTag)
   const isFirstLocate = useRef(true)
+  const setPinsLoadingRef = useRef(setPinsLoading)
 
   // Keep refs updated with latest values
   onLocationSelectRef.current = onLocationSelect
+  setPinsLoadingRef.current = setPinsLoading
   onPinsLoadedRef.current = onPinsLoaded
   selectedTagRef.current = selectedTag
 
@@ -48,6 +50,39 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
     markersRef.current.forEach(marker => marker.remove())
     markersRef.current = []
   }, [])
+
+  // Open a popup for a pin, fly to it, and return to user location on close
+  const showPinPopup = useCallback((pin, map) => {
+    popupRef.current?.remove()
+
+    const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
+      .setLngLat([pin.lng, pin.lat])
+      .setHTML(createPopupHTML({
+        title: pin.title,
+        description: pin.description,
+        location: pin.location,
+        lng: pin.lng,
+        lat: pin.lat,
+        tags: pin.tags
+      }))
+      .addTo(map)
+
+    popupRef.current = popup
+
+    popup.on('close', () => {
+      popupRef.current = null
+      setPinsLoadingRef.current?.(true)
+      if (userLocationRef.current) {
+        map.flyTo({
+          center: [userLocationRef.current.lng, userLocationRef.current.lat],
+          zoom: DEFAULT_ZOOM,
+          duration: 500,
+          padding: SIDEBAR_PADDING
+        })
+      }
+      setIsSidebarOpen(true)
+    })
+  }, [setIsSidebarOpen])
 
   // Add markers for pins
   const addMarkers = useCallback((pins, map) => {
@@ -61,51 +96,19 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
 
       marker.getElement().addEventListener('click', (e) => {
         e.stopPropagation()
-
-        // Hide sidebar
         setIsSidebarOpen(false)
-
-        // Close existing popup
-        popupRef.current?.remove()
-
-        const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
-          .setLngLat([pin.lng, pin.lat])
-          .setHTML(createPopupHTML({
-            title: pin.title,
-            description: pin.description,
-            location: pin.location,
-            lng: pin.lng,
-            lat: pin.lat,
-            tags: pin.tags
-          }))
-          .addTo(map)
-
-        popupRef.current = popup
-
+        showPinPopup(pin, map)
         map.flyTo({
           center: [pin.lng, pin.lat],
           zoom: 16,
           duration: DURATION,
           padding: 0
         })
-
-        popup.on('close', () => {
-          popupRef.current = null
-          if (userLocationRef.current) {
-            map.flyTo({
-              center: [userLocationRef.current.lng, userLocationRef.current.lat],
-              zoom: DEFAULT_ZOOM,
-              duration: 500,
-              padding: SIDEBAR_PADDING
-            })
-          }
-          setIsSidebarOpen(true)
-        })
       })
 
       markersRef.current.push(marker)
     })
-  }, [setIsSidebarOpen])
+  }, [setIsSidebarOpen, showPinPopup])
 
   // Load pins for current viewport
   const loadPins = useCallback(async (map) => {
@@ -127,8 +130,10 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       clearMarkers()
       addMarkers(pins, map)
       onPinsLoadedRef.current?.(pins)
+      setPinsLoadingRef.current?.(false)
     } catch (error) {
       showAlert('Failed to load pins')
+      setPinsLoadingRef.current?.(false)
     }
   }, [clearMarkers, addMarkers, showAlert])
 
@@ -141,8 +146,6 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      interactive: true,
-      dragPan: true,
       center: initialCenter,
       zoom: DEFAULT_ZOOM,
       style: 'mapbox://styles/kavyasub/cmlcjf8h9002y01sa5jf1ezw0'
@@ -256,47 +259,24 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
     loadPins(mapRef.current)
   }, [selectedTag, loadPins])
 
+  // Reload pins when triggered externally (e.g. pin deleted)
+  useEffect(() => {
+    if (!mapRef.current || !refreshKey) return
+    loadPins(mapRef.current)
+  }, [refreshKey, loadPins])
+
   // Fly to a pin when clicked from PinList
   useEffect(() => {
     if (!mapRef.current || !flyToPin) return
 
     setIsSidebarOpen(false)
-
-    popupRef.current?.remove()
-
-    const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
-      .setLngLat([flyToPin.lng, flyToPin.lat])
-      .setHTML(createPopupHTML({
-        title: flyToPin.title,
-        description: flyToPin.description,
-        location: flyToPin.location,
-        lng: flyToPin.lng,
-        lat: flyToPin.lat,
-        tags: flyToPin.tags
-      }))
-      .addTo(mapRef.current)
-
-    popupRef.current = popup
-
+    showPinPopup(flyToPin, mapRef.current)
     mapRef.current.flyTo({
       center: [flyToPin.lng, flyToPin.lat],
       zoom: 16,
       duration: 500,
     })
-
-    popup.on('close', () => {
-      popupRef.current = null
-      if (userLocationRef.current) {
-        mapRef.current.flyTo({
-          center: [userLocationRef.current.lng, userLocationRef.current.lat],
-          zoom: DEFAULT_ZOOM,
-          duration: 500,
-          padding: SIDEBAR_PADDING
-        })
-      }
-      setIsSidebarOpen(true)
-    })
-  }, [flyToPin])
+  }, [flyToPin, showPinPopup])
 
   return <div id='map-container' ref={mapContainerRef} />
 }

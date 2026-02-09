@@ -1,21 +1,67 @@
+import { useState, useRef, useEffect } from 'react'
+import { IoEllipsisVertical } from 'react-icons/io5'
+import { deletePin } from '../../api/pins'
 import './PinCard.css'
 
-function PinCard({ pin, onClick }) {
+function PinCard({ pin, onClick, onDelete, onEdit }) {
   const firstTag = pin.tags?.[0]
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  const handleDelete = async (e) => {
+    e.stopPropagation()
+    try {
+      await deletePin(pin.id)
+      onDelete?.(pin.id)
+    } catch (error) {
+      console.error('Failed to delete pin', error)
+    }
+  }
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [menuOpen])
 
   return (
-    <div className="pin-card" onClick={() => onClick(pin)}>
-      <div className="pin-card-row">
-        {firstTag && (
-          <span className="pin-card-tag" style={{ background: firstTag.color }}>
-            {firstTag.name}
-          </span>
+    <div
+      className="pin-card"
+      style={{ '--accent': firstTag?.color || '#9ca3af' }}
+      onClick={() => onClick(pin)}
+    >
+      <div className="pin-card-menu" ref={menuRef}>
+        <button
+          className="btn-icon pin-card-menu-btn"
+          onClick={(e) => {
+            e.stopPropagation()
+            setMenuOpen(!menuOpen)
+          }}
+        >
+          <IoEllipsisVertical size={14} />
+        </button>
+        {menuOpen && (
+          <div className="pin-card-dropdown">
+            <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(pin) }}>Edit</button>
+            <button onClick={handleDelete}>Delete</button>
+          </div>
         )}
-        <span className="pin-card-title">{pin.title}</span>
       </div>
-      <div className="pin-card-coords">
+
+      <span className="pin-card-title">{pin.title}</span>
+      <span className="pin-card-location">
         📍 {pin.location ? pin.location : `${pin.lat.toFixed(4)}, ${pin.lng.toFixed(4)}`}
-      </div>
+      </span>
+      {firstTag && (
+        <span className="pin-card-tag" style={{ background: firstTag.color }}>
+          {firstTag.name}
+        </span>
+      )}
     </div>
   )
 }

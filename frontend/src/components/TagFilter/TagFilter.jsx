@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { TAG_ICONS } from '../../constants/tagIcons'
 import './TagFilter.css'
 

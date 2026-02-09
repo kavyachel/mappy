@@ -1,6 +1,10 @@
 .pin-card {
-  padding: 20px 22px;
-  border-radius: 14px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: rgba(255, 255, 255, 0.5);
   cursor: pointer;
@@ -13,33 +17,75 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.pin-card-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.pin-card-menu {
+  position: absolute;
+  top: 12px;
+  right: 10px;
 }
 
-.pin-card-tag {
-  font-size: 14px;
-  padding: 8px 12px;
-  border-radius: 16px;
-  color: white;
-  font-weight: 500;
-  white-space: nowrap;
-  flex-shrink: 0;
+.pin-card-menu-btn {
+  color: #c0c5cc;
+}
+
+.pin-card-menu-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.pin-card-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  overflow: hidden;
+  min-width: 100px;
+}
+
+.pin-card-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 13px;
+  color: #374151;
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.pin-card-dropdown button:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .pin-card-title {
   font-size: 20px;
   font-weight: 600;
   color: #1f2937;
+  padding-right: 24px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.pin-card-coords {
+.pin-card-location {
   font-size: 14px;
   color: #9ca3af;
-  margin-top: 8px;
+}
+
+.pin-card-tag {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: white;
+  font-weight: 500;
+  white-space: nowrap;
+  margin-top: 2px;
 }
