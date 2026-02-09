@@ -65,7 +65,7 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
         <div className='form-title'>
           <h2>{isEditing ? 'Edit Pin' : 'Create a Pin'}</h2>
           <button type="button" className="btn-icon" style={{ marginLeft: 'auto' }} onClick={onClose}>
-            <IoClose size={16} />
+            <IoClose size={20} />
           </button>
         </div>
         <p>📍 {`${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}</p>
