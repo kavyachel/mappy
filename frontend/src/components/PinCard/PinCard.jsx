@@ -2,28 +2,22 @@ import { getTagDefinition } from '../../constants/tagDefinitions'
 import './PinCard.css'
 
 function PinCard({ pin, onClick }) {
+  const firstTag = pin.tags?.[0]
+  const def = firstTag ? getTagDefinition(firstTag) : null
+
   return (
     <div className="pin-card" onClick={() => onClick(pin)}>
-      <div className="pin-card-title">{pin.title}</div>
-      {pin.description && (
-        <div className="pin-card-description">{pin.description}</div>
-      )}
-      {pin.tags?.length > 0 && (
-        <div className="pin-card-tags">
-          {pin.tags.map(tag => {
-            const def = getTagDefinition(tag)
-            return (
-              <span
-                key={tag}
-                className="pin-card-tag"
-                style={{ background: def?.color || '#007AD1' }}
-              >
-                {tag}
-              </span>
-            )
-          })}
-        </div>
-      )}
+      <div className="pin-card-row">
+        {def && (
+          <span className="pin-card-tag" style={{ background: def.color }}>
+            {firstTag}
+          </span>
+        )}
+        <span className="pin-card-title">{pin.title}</span>
+      </div>
+      <div className="pin-card-coords">
+        {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
+      </div>
     </div>
   )
 }

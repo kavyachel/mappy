@@ -7,7 +7,7 @@ import { NYC_CENTER, DEFAULT_ZOOM, GEOLOCATE_CONFIG } from '../../constants/map.
 import { useAlert } from '../Alert/Alert'
 
 const LOCATION_CACHE_KEY = 'mappy_last_location'
-const SIDEBAR_PADDING = { left: 400, top: 0, right: 0, bottom: 0 }
+const SIDEBAR_PADDING = { left: 396, top: 0, right: 0, bottom: 0 }
 
 const getCachedLocation = () => {
   try {

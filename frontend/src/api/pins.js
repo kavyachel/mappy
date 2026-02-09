@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5000/api'
+const API_BASE = 'http://localhost:5001/api'
 
 // Fetch pins within viewport bounds, optionally filtered by tag
 export const fetchPins = async (bounds, tag = null) => {

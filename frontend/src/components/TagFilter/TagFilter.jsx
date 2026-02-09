@@ -20,7 +20,7 @@ function TagFilter({ selectedTag, onTagSelect }) {
               onClick={() => onTagSelect(selectedTag === tag.name ? null : tag.name)}
               style={{ '--tag-color': tag.color }}
             >
-              <Icon size={16} />
+              <Icon size={14} />
               <span>{tag.name}</span>
             </button>
           )
