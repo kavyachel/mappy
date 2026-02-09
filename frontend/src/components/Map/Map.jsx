@@ -25,7 +25,7 @@ const setCachedLocation = (lng, lat) => {
   } catch {}
 }
 
-function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, flyToPin }) {
+function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, flyToPin, setIsSidebarOpen }) {
   const { showAlert } = useAlert()
   const mapRef = useRef()
   const mapContainerRef = useRef()
@@ -47,7 +47,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
   const clearMarkers = useCallback(() => {
     markersRef.current.forEach(marker => marker.remove())
     markersRef.current = []
-  }, [])
+  }, [setIsSidebarOpen])
 
   // Add markers for pins
   const addMarkers = useCallback((pins, map) => {
@@ -64,6 +64,9 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       marker.getElement().addEventListener('click', (e) => {
         e.stopPropagation()
 
+        // Hide sidebar
+        setIsSidebarOpen(false);
+
         // Close existing popup
         popupRef.current?.remove()
 
@@ -72,6 +75,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
           .setHTML(createPopupHTML({
             title: pin.title,
             description: pin.description,
+            location: pin.location,
             lng: pin.lng,
             lat: pin.lat,
             tags: pin.tags
@@ -95,12 +99,13 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
               duration: 500
             })
           }
+          setIsSidebarOpen(true);
         })
       })
 
       markersRef.current.push(marker)
     })
-  }, [])
+  }, [setIsSidebarOpen])
 
   // Load pins for current viewport
   const loadPins = useCallback(async (map) => {
@@ -123,7 +128,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       showAlert('Failed to load pins')
       console.error('Error loading pins:', error)
     }
-  }, [clearMarkers, addMarkers, showAlert])
+  }, [clearMarkers, addMarkers, showAlert, setIsSidebarOpen])
 
   // Initialize map
   useEffect(() => {
@@ -249,6 +254,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
   useEffect(() => {
     if (!mapRef.current || !flyToPin) return
 
+    setIsSidebarOpen(false);
+
     popupRef.current?.remove()
 
     const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
@@ -256,6 +263,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       .setHTML(createPopupHTML({
         title: flyToPin.title,
         description: flyToPin.description,
+        location: flyToPin.location,
         lng: flyToPin.lng,
         lat: flyToPin.lat,
         tags: flyToPin.tags
@@ -281,6 +289,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
           padding: SIDEBAR_PADDING
         })
       }
+      setIsSidebarOpen(true);
     })
   }, [flyToPin])
 
