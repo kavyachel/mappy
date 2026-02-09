@@ -47,10 +47,13 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated }) {
   return (
     <div className="pin-form">
       <div className="form-header">
-        <h2>📍 Create a Pin</h2>
-        <button type="button" className="close-btn" onClick={onClose}>
-          <IoClose size={16} />
-        </button>
+        <div className='form-title'>
+          <h2>Create a Pin</h2>
+          <button type="button" className="close-btn" onClick={onClose}>
+            <IoClose size={16} />
+          </button>
+        </div>
+        <p>📍 {`${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}</p>
       </div>
 
       <Formik

@@ -26,13 +26,25 @@
 
 .form-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
 }
 
-.form-header h2 {
+.form-header p {
+  margin-top: 2px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.form-title h2 {
   font-size: 26px;
 }
+
+.form-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
 
 .form-group {
   display: flex;

@@ -80,6 +80,29 @@ def retrieve_all_pins():
 
     return jsonify([serialize_pin(p) for p in query.all()]), 200
 
+# Update a pin
+@api.route('/pins/<int:id>', methods=['PUT'])
+def update_pin(id):
+    pin = Pin.query.get(id)
+    if not pin:
+        return {"error": "Pin not found"}, 404
+
+    data = request.get_json()
+    pin.title = data.get("title", pin.title)
+    pin.description = data.get("description", pin.description)
+    pin.location = data.get("location", pin.location)
+    if data.get("lat") is not None:
+        pin.lat = data["lat"]
+    if data.get("lng") is not None:
+        pin.lng = data["lng"]
+    if "tags" in data:
+        pin.set_tags(data["tags"])
+
+    db.session.commit()
+    cache.clear()
+
+    return jsonify(serialize_pin(pin)), 200
+
 @api.route('/pins/<int:id>', methods=['DELETE'])
 def delete_pin(id):
     pin = Pin.query.get(id)
