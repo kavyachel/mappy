@@ -47,6 +47,23 @@ export const addPin = async (pin) => {
   return response.json()
 }
 
+// Update an existing pin
+export const updatePin = async (pinId, pin) => {
+  const response = await fetch(`${API_BASE}/pins/${pinId}`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({
+      title: pin.title,
+      description: pin.description,
+      tags: pin.tags || [],
+      lat: pin.lat,
+      lng: pin.lng
+    })
+  })
+  if (!response.ok) throw new Error('Failed to update pin')
+  return response.json()
+}
+
 // Delete a pin by ID
 export const deletePin = async (pinId) => {
   const response = await fetch(`${API_BASE}/pins/${pinId}`, {

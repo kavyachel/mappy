@@ -3,7 +3,7 @@ import { IoEllipsisVertical } from 'react-icons/io5'
 import { deletePin } from '../../api/pins'
 import './PinCard.css'
 
-function PinCard({ pin, onClick, onDelete }) {
+function PinCard({ pin, onClick, onDelete, onEdit }) {
   const firstTag = pin.tags?.[0]
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
@@ -47,7 +47,7 @@ function PinCard({ pin, onClick, onDelete }) {
         </button>
         {menuOpen && (
           <div className="pin-card-dropdown">
-            <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false) }}>Edit</button>
+            <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit?.(pin) }}>Edit</button>
             <button onClick={handleDelete}>Delete</button>
           </div>
         )}
