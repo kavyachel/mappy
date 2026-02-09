@@ -29,7 +29,7 @@ export function AlertProvider({ children }) {
         {alerts.map(alert => (
           <div key={alert.id} className={`alert alert-${alert.type}`}>
             <span>{alert.message}</span>
-            <button className="alert-close" onClick={() => removeAlert(alert.id)}>×</button>
+            <button className="btn-icon alert-close" onClick={() => removeAlert(alert.id)}>×</button>
           </div>
         ))}
       </div>

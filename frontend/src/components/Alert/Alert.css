@@ -34,14 +34,9 @@
 }
 
 .alert-close {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
   color: inherit;
+  font-size: 18px;
   opacity: 0.6;
-  padding: 0;
-  line-height: 1;
 }
 
 .alert-close:hover {

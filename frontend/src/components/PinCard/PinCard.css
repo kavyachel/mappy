@@ -24,19 +24,10 @@
 }
 
 .pin-card-menu-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
   color: #c0c5cc;
-  display: flex;
-  align-items: center;
-  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .pin-card-menu-btn:hover {
-  color: #374151;
   background: rgba(0, 0, 0, 0.05);
 }
 

@@ -26,16 +26,12 @@
 }
 
 .tag-remove {
-  background: none;
-  border: none;
   color: white;
   font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
   margin-left: 2px;
 }
 
 .tag-remove:hover {
+  color: white;
   transform: scale(1.1);
 }

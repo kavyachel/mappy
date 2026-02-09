@@ -37,7 +37,7 @@ function PinCard({ pin, onClick, onDelete, onEdit }) {
     >
       <div className="pin-card-menu" ref={menuRef}>
         <button
-          className="pin-card-menu-btn"
+          className="btn-icon pin-card-menu-btn"
           onClick={(e) => {
             e.stopPropagation()
             setMenuOpen(!menuOpen)

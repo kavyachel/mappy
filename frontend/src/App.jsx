@@ -50,7 +50,6 @@ function AppContent() {
         await addPin(pin)
       }
       closeForm()
-      setMapRefreshKey(prev => prev + 1)
     } catch (error) {
       showAlert(editingPin ? 'Failed to update pin' : 'Failed to create pin')
     }

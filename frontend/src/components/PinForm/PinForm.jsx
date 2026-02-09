@@ -64,7 +64,7 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
       <div className="form-header">
         <div className='form-title'>
           <h2>{isEditing ? 'Edit Pin' : 'Create a Pin'}</h2>
-          <button type="button" className="close-btn" onClick={onClose}>
+          <button type="button" className="btn-icon" style={{ marginLeft: 'auto' }} onClick={onClose}>
             <IoClose size={16} />
           </button>
         </div>
@@ -165,7 +165,7 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
                     />
                   ))}
                 </div>
-                <button type="button" className="add-custom-btn" onClick={addCustomTag}>
+                <button type="button" className="btn-secondary" onClick={addCustomTag}>
                   ADD
                 </button>
               </div>
