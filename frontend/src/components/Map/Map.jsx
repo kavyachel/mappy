@@ -50,7 +50,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
   // Add markers for pins
   const addMarkers = useCallback((pins, map) => {
     pins.forEach(pin => {
-      const marker = new mapboxgl.Marker({ color: '#007AD1' })
+      const markerColor = pin.tags?.[0]?.color || '#007AD1'
+      const marker = new mapboxgl.Marker({ color: markerColor })
         .setLngLat([pin.lng, pin.lat])
         .addTo(map)
 
