@@ -25,7 +25,7 @@ const setCachedLocation = (lng, lat) => {
   } catch {}
 }
 
-function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, flyToPin, setIsSidebarOpen }) {
+function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, flyToPin, setIsSidebarOpen, refreshKey, setPinsLoading }) {
   const { showAlert } = useAlert()
   const mapRef = useRef()
   const mapContainerRef = useRef()
@@ -37,9 +37,11 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
   const onPinsLoadedRef = useRef(onPinsLoaded)
   const selectedTagRef = useRef(selectedTag)
   const isFirstLocate = useRef(true)
+  const setPinsLoadingRef = useRef(setPinsLoading)
 
   // Keep refs updated with latest values
   onLocationSelectRef.current = onLocationSelect
+  setPinsLoadingRef.current = setPinsLoading
   onPinsLoadedRef.current = onPinsLoaded
   selectedTagRef.current = selectedTag
 
@@ -91,6 +93,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
 
         popup.on('close', () => {
           popupRef.current = null
+          setPinsLoadingRef.current?.(true)
           if (userLocationRef.current) {
             map.flyTo({
               center: [userLocationRef.current.lng, userLocationRef.current.lat],
@@ -127,8 +130,10 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       clearMarkers()
       addMarkers(pins, map)
       onPinsLoadedRef.current?.(pins)
+      setPinsLoadingRef.current?.(false)
     } catch (error) {
       showAlert('Failed to load pins')
+      setPinsLoadingRef.current?.(false)
     }
   }, [clearMarkers, addMarkers, showAlert])
 
@@ -256,6 +261,12 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
     loadPins(mapRef.current)
   }, [selectedTag, loadPins])
 
+  // Reload pins when triggered externally (e.g. pin deleted)
+  useEffect(() => {
+    if (!mapRef.current || !refreshKey) return
+    loadPins(mapRef.current)
+  }, [refreshKey, loadPins])
+
   // Fly to a pin when clicked from PinList
   useEffect(() => {
     if (!mapRef.current || !flyToPin) return
@@ -286,6 +297,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
 
     popup.on('close', () => {
       popupRef.current = null
+      setPinsLoadingRef.current?.(true)
       if (userLocationRef.current) {
         mapRef.current.flyTo({
           center: [userLocationRef.current.lng, userLocationRef.current.lat],

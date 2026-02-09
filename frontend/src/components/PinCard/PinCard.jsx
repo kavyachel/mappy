@@ -1,11 +1,22 @@
 import { useState, useRef, useEffect } from 'react'
 import { IoEllipsisVertical } from 'react-icons/io5'
+import { deletePin } from '../../api/pins'
 import './PinCard.css'
 
-function PinCard({ pin, onClick }) {
+function PinCard({ pin, onClick, onDelete }) {
   const firstTag = pin.tags?.[0]
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
+
+  const handleDelete = async (e) => {
+    e.stopPropagation()
+    try {
+      await deletePin(pin.id)
+      onDelete?.(pin.id)
+    } catch (error) {
+      console.error('Failed to delete pin', error)
+    }
+  }
 
   useEffect(() => {
     if (!menuOpen) return
@@ -37,7 +48,7 @@ function PinCard({ pin, onClick }) {
         {menuOpen && (
           <div className="pin-card-dropdown">
             <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false) }}>Edit</button>
-            <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false) }}>Delete</button>
+            <button onClick={handleDelete}>Delete</button>
           </div>
         )}
       </div>

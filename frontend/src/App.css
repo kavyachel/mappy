@@ -19,3 +19,11 @@ h2 {
   color: #1a1a1a;
   padding-bottom: 12px;
 }
+
+.pins-loading {
+  text-align: center;
+  color: #9ca3af;
+  font-family: monospace;
+  font-size: 14px;
+  padding: 24px 0;
+}

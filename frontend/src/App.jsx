@@ -17,6 +17,8 @@ function AppContent() {
   const [pins, setPins] = useState([])
   const [flyToPin, setFlyToPin] = useState(null)
   const [tags, setTags] = useState([])
+  const [mapRefreshKey, setMapRefreshKey] = useState(0)
+  const [pinsLoading, setPinsLoading] = useState(true)
   const { showAlert } = useAlert()
 
   const refreshTags = useCallback(() => {
@@ -47,6 +49,11 @@ function AppContent() {
     }
   }
 
+  const handlePinDelete = (pinId) => {
+    setPins(prev => prev.filter(p => p.id !== pinId))
+    setMapRefreshKey(prev => prev + 1)
+  }
+
   const handlePinClick = (pin) => {
     setFlyToPin(pin)
   }
@@ -72,7 +79,11 @@ function AppContent() {
             />
             <div className="sidebar-divider" />
             <div className="sidebar-content-list">
-              <PinList pins={pins} onPinClick={handlePinClick} />
+              {pinsLoading ? (
+                <div className="pins-loading">Loading pins...</div>
+              ) : (
+                <PinList pins={pins} onPinClick={handlePinClick} onPinDelete={handlePinDelete} />
+              )}
             </div>
           </>
         )}
@@ -85,6 +96,8 @@ function AppContent() {
         onPinsLoaded={setPins}
         flyToPin={flyToPin}
         setIsSidebarOpen={setIsSidebarOpen}
+        refreshKey={mapRefreshKey}
+        setPinsLoading={setPinsLoading}
       />
     </>
   )

@@ -46,3 +46,17 @@ export const addPin = async (pin) => {
 
   return response.json()
 }
+
+// Delete a pin by ID
+export const deletePin = async (pinId) => {
+  const response = await fetch(`${API_BASE}/pins/${pinId}`, {
+    method: 'DELETE',
+    headers
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to delete pin')
+  }
+
+  return response.json()
+}
