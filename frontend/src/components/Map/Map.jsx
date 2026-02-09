@@ -7,6 +7,8 @@ import { NYC_CENTER, DEFAULT_ZOOM, GEOLOCATE_CONFIG } from '../../constants/map.
 import { useAlert } from '../Alert/Alert'
 
 const LOCATION_CACHE_KEY = 'mappy_last_location'
+const SIDEBAR_PADDING = { left: 400, top: 0, right: 0, bottom: 0 }
+const NO_PADDING = { left: 0, top: 0, right: 0, bottom: 0 }
 
 const getCachedLocation = () => {
   try {
@@ -195,7 +197,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
       mapRef.current.flyTo({
         center: [selectedLocation.lng, selectedLocation.lat],
         zoom: 16,
-        duration: 200
+        duration: 200,
+        padding: SIDEBAR_PADDING
       })
 
       tempMarkerRef.current = new mapboxgl.Marker({ color: '#6B7280' })
@@ -207,7 +210,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag }) {
       mapRef.current.flyTo({
         center: [userLocationRef.current.lng, userLocationRef.current.lat],
         zoom: DEFAULT_ZOOM,
-        duration: 500
+        duration: 500,
+        padding: NO_PADDING
       })
     }
   }, [selectedLocation, loadPins])

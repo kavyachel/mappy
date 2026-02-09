@@ -1,0 +1,13 @@
+.pin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pin-list-empty {
+  text-align: center;
+  color: #9ca3af;
+  font-family: monospace;
+  font-size: 13px;
+  padding: 24px 0;
+}

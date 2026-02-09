@@ -1,9 +1,9 @@
 import './Sidebar.css'
 
-function Sidebar({ children, onClose }) {
+function Sidebar({ children, onClose, showOverlay }) {
   return (
     <>
-      <div className="sidebar-overlay" onClick={onClose} />
+      {showOverlay && <div className="sidebar-overlay" onClick={onClose} />}
       <div className="sidebar">
         {children}
       </div>
