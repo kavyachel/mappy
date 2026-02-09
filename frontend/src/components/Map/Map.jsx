@@ -63,7 +63,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         e.stopPropagation()
 
         // Hide sidebar
-        setIsSidebarOpen(false);
+        setIsSidebarOpen(false)
 
         // Close existing popup
         popupRef.current?.remove()
@@ -99,7 +99,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
               padding: SIDEBAR_PADDING
             })
           }
-          setIsSidebarOpen(true);
+          setIsSidebarOpen(true)
         })
       })
 
@@ -260,7 +260,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
   useEffect(() => {
     if (!mapRef.current || !flyToPin) return
 
-    setIsSidebarOpen(false);
+    setIsSidebarOpen(false)
 
     popupRef.current?.remove()
 
@@ -294,7 +294,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
           padding: SIDEBAR_PADDING
         })
       }
-      setIsSidebarOpen(true);
+      setIsSidebarOpen(true)
     })
   }, [flyToPin])
 

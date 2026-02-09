@@ -1,21 +1,5 @@
-import { fetchLocation } from "./mapbox"
-
-const API_BASE = 'http://localhost:5001/api'
-const API_KEY = import.meta.env.VITE_API_KEY
-
-const headers = {
-  'Content-Type': 'application/json',
-  'X-API-Key': API_KEY
-}
-
-// Fetch all tags
-export const fetchTags = async () => {
-  const response = await fetch(`${API_BASE}/tags`, { headers })
-  if (!response.ok) {
-    throw new Error('Failed to fetch tags')
-  }
-  return response.json()
-}
+import { API_BASE, headers } from './config'
+import { fetchLocation } from './mapbox'
 
 // Fetch pins within viewport bounds, optionally filtered by tag
 export const fetchPins = async (bounds, tag = null) => {
