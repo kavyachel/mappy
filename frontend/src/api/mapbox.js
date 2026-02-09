@@ -14,7 +14,6 @@ export const fetchLocation = async (lng, lat) => {
         if (data.features && data.features.length > 0) {
             const placeName = data.features[0].place_name; 
             const location = abbreviateLocation(placeName);
-            console.log("Fetched location:", location);
             return location;
         } else {
             return 'No location found';

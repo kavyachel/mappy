@@ -8,7 +8,7 @@ import { useAlert } from '../Alert/Alert'
 import './Map.css'
 
 const LOCATION_CACHE_KEY = 'mappy_last_location'
-const SIDEBAR_PADDING = { left: 396, top: 0, right: 0, bottom: 0 }
+const SIDEBAR_PADDING = { left: 400, top: 0, right: 0, bottom: 0 }
 const DURATION = 400
 
 const getCachedLocation = () => {
@@ -47,7 +47,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
   const clearMarkers = useCallback(() => {
     markersRef.current.forEach(marker => marker.remove())
     markersRef.current = []
-  }, [setIsSidebarOpen])
+  }, [])
 
   // Add markers for pins
   const addMarkers = useCallback((pins, map) => {
@@ -57,9 +57,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         .setLngLat([pin.lng, pin.lat])
         .addTo(map)
 
-      marker.getElement().addEventListener('mouseenter', () =>{
-        marker.getElement().style.cursor = 'pointer'
-      })
+      marker.getElement().style.cursor = 'pointer'
 
       marker.getElement().addEventListener('click', (e) => {
         e.stopPropagation()
@@ -87,7 +85,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         map.flyTo({
           center: [pin.lng, pin.lat],
           zoom: 16,
-          duration: DURATION
+          duration: DURATION,
+          padding: 0
         })
 
         popup.on('close', () => {
@@ -96,7 +95,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
             map.flyTo({
               center: [userLocationRef.current.lng, userLocationRef.current.lat],
               zoom: DEFAULT_ZOOM,
-              duration: 500
+              duration: 500,
+              padding: SIDEBAR_PADDING
             })
           }
           setIsSidebarOpen(true);
@@ -121,14 +121,16 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         selectedTagRef.current
       )
 
+      // Map may have been destroyed while fetch was in flight
+      if (map !== mapRef.current) return
+
       clearMarkers()
       addMarkers(pins, map)
       onPinsLoadedRef.current?.(pins)
     } catch (error) {
       showAlert('Failed to load pins')
-      console.error('Error loading pins:', error)
     }
-  }, [clearMarkers, addMarkers, showAlert, setIsSidebarOpen])
+  }, [clearMarkers, addMarkers, showAlert])
 
   // Initialize map
   useEffect(() => {
@@ -187,8 +189,10 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       loadPins(map)
     })
 
-    map.on('load', () => geolocate.trigger())
-    map.on('moveend', () => loadPins(map))
+    map.on('load', () => {
+      geolocate.trigger()
+      map.on('moveend', () => loadPins(map))
+    })
 
     return () => {
       clearMarkers()
@@ -208,6 +212,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
     tempMarkerRef.current?.remove()
     tempMarkerRef.current = null
 
+    // To create a new pin
     if (selectedLocation) {
       mapRef.current.flyTo({
         center: [selectedLocation.lng, selectedLocation.lat],
@@ -221,6 +226,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         .addTo(mapRef.current)
 
     } else if (userLocationRef.current) {
+      // Main view at user location
       loadPins(mapRef.current)
       mapRef.current.flyTo({
         center: [userLocationRef.current.lng, userLocationRef.current.lat],
@@ -276,7 +282,6 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       center: [flyToPin.lng, flyToPin.lat],
       zoom: 16,
       duration: 500,
-      padding: SIDEBAR_PADDING
     })
 
     popup.on('close', () => {

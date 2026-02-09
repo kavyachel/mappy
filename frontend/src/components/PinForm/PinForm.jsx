@@ -40,7 +40,7 @@ function PinForm({ location, onSubmit, onClose }) {
       <div className="form-header">
         <h2>📍 Create a Pin</h2>
         <button type="button" className="close-btn" onClick={onClose}>
-          <IoClose size={20} />
+          <IoClose size={16} />
         </button>
       </div>
 
