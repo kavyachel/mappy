@@ -7,6 +7,10 @@ Built with React + Mapbox on the frontend and Flask + SQLite on the backend.
 ## Getting Started
 
 You'll need Node.js (v18+), Python (v3.9+), and a free Mapbox account.
+### Clone the Repository
+``` bash
+git clone https://github.com/kavyachel/mappy.git
+```
 
 ### Backend
 
