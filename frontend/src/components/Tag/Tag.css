@@ -2,10 +2,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   border-radius: 16px;
   color: white;
-  font-size: 12px;
+  font-size: 14px;
   font-family: monospace;
   white-space: nowrap;
 }

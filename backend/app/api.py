@@ -1,9 +1,29 @@
 import json
+import os
 from flask import Blueprint, request, jsonify
 from .db import db
 from .models import Pin
+from .cache import cache
 
 api = Blueprint("api", __name__)
+
+def _round_viewport_key():
+    """Cache key that rounds viewport coords to 3 decimal places (~111m)."""
+    viewport = request.args.get('viewport', '')
+    tag = request.args.get('tag', '')
+    try:
+        rounded = ','.join(f'{float(c):.3f}' for c in viewport.split(','))
+    except ValueError:
+        rounded = viewport
+    return f'pins:{rounded}:{tag}'
+
+@api.before_request
+def require_api_key():
+    if request.method == 'OPTIONS':
+        return
+    key = os.getenv('API_KEY')
+    if key and request.headers.get('X-API-Key') != key:
+        return {"error": "Unauthorized"}, 401
 
 TAG_COLORS = {
     'Restaurant': '#FF6B6B', 'Cafe': '#8B4513', 'Gas Station': '#FFD93D',
@@ -49,6 +69,7 @@ def create_pin():
     pin = Pin(
         title=data.get("title", "Untitled"),
         description=data.get("description"),
+        location=data.get("location"),
         lat=lat,
         lng=lng
     )
@@ -59,12 +80,14 @@ def create_pin():
 
     db.session.add(pin)
     db.session.commit()
-    
+    cache.clear()
+
     # this looks gross - fix later
     return jsonify({
         "id": pin.id,
         "title": pin.title,
         "description": pin.description,
+        "location": pin.location,
         "lat": pin.lat,
         "lng": pin.lng,
         "tags": normalize_tags(pin.tags),
@@ -73,6 +96,7 @@ def create_pin():
 
 # Retrieve pin by ID
 @api.route('/pins/<int:id>', methods=['GET'])
+@cache.cached(timeout=30)
 def retrieve_pin(id):
     pin = Pin.query.get(id)
     if not pin:
@@ -82,6 +106,7 @@ def retrieve_pin(id):
         "id": pin.id,
         "title": pin.title,
         "description": pin.description,
+        "location": pin.location,
         "lat": pin.lat,
         "lng": pin.lng,
         "tags": normalize_tags(pin.tags),
@@ -90,6 +115,7 @@ def retrieve_pin(id):
 
 # Retrieve all pins by viewport, optionally filtered by tag
 @api.route('/pins', methods=['GET'])
+@cache.cached(timeout=30, make_cache_key=_round_viewport_key)
 def retrieve_all_pins():
     viewport = request.args.get('viewport')
     tag = request.args.get('tag')
@@ -122,6 +148,7 @@ def retrieve_all_pins():
         "id": pin.id,
         "title": pin.title,
         "description": pin.description,
+        "location": pin.location,
         "lat": pin.lat,
         "lng": pin.lng,
         "tags": normalize_tags(pin.tags),
@@ -138,4 +165,5 @@ def delete_pin(id):
         return {"error": "Pin not found"}, 404
     db.session.delete(pin)
     db.session.commit()
+    cache.clear()
     return {"message": "Pin deleted"}, 200

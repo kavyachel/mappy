@@ -5,9 +5,11 @@ import { fetchPins } from '../../api/pins.js'
 import { createPopupHTML } from '../../utils/popup.js'
 import { NYC_CENTER, DEFAULT_ZOOM, GEOLOCATE_CONFIG } from '../../constants/map.js'
 import { useAlert } from '../Alert/Alert'
+import './Map.css'
 
 const LOCATION_CACHE_KEY = 'mappy_last_location'
-const SIDEBAR_PADDING = { left: 396, top: 0, right: 0, bottom: 0 }
+const SIDEBAR_PADDING = { left: 400, top: 0, right: 0, bottom: 0 }
+const DURATION = 400
 
 const getCachedLocation = () => {
   try {
@@ -23,7 +25,7 @@ const setCachedLocation = (lng, lat) => {
   } catch {}
 }
 
-function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, flyToPin }) {
+function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, flyToPin, setIsSidebarOpen }) {
   const { showAlert } = useAlert()
   const mapRef = useRef()
   const mapContainerRef = useRef()
@@ -55,8 +57,13 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         .setLngLat([pin.lng, pin.lat])
         .addTo(map)
 
+      marker.getElement().style.cursor = 'pointer'
+
       marker.getElement().addEventListener('click', (e) => {
         e.stopPropagation()
+
+        // Hide sidebar
+        setIsSidebarOpen(false);
 
         // Close existing popup
         popupRef.current?.remove()
@@ -66,6 +73,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
           .setHTML(createPopupHTML({
             title: pin.title,
             description: pin.description,
+            location: pin.location,
             lng: pin.lng,
             lat: pin.lat,
             tags: pin.tags
@@ -77,7 +85,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         map.flyTo({
           center: [pin.lng, pin.lat],
           zoom: 16,
-          duration: 200
+          duration: DURATION,
+          padding: 0
         })
 
         popup.on('close', () => {
@@ -86,15 +95,17 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
             map.flyTo({
               center: [userLocationRef.current.lng, userLocationRef.current.lat],
               zoom: DEFAULT_ZOOM,
-              duration: 500
+              duration: 500,
+              padding: SIDEBAR_PADDING
             })
           }
+          setIsSidebarOpen(true);
         })
       })
 
       markersRef.current.push(marker)
     })
-  }, [])
+  }, [setIsSidebarOpen])
 
   // Load pins for current viewport
   const loadPins = useCallback(async (map) => {
@@ -109,6 +120,9 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         },
         selectedTagRef.current
       )
+
+      // Map may have been destroyed while fetch was in flight
+      if (map !== mapRef.current) return
 
       clearMarkers()
       addMarkers(pins, map)
@@ -175,8 +189,10 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       loadPins(map)
     })
 
-    map.on('load', () => geolocate.trigger())
-    map.on('moveend', () => loadPins(map))
+    map.on('load', () => {
+      geolocate.trigger()
+      map.on('moveend', () => loadPins(map))
+    })
 
     return () => {
       clearMarkers()
@@ -196,11 +212,12 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
     tempMarkerRef.current?.remove()
     tempMarkerRef.current = null
 
+    // To create a new pin
     if (selectedLocation) {
       mapRef.current.flyTo({
         center: [selectedLocation.lng, selectedLocation.lat],
         zoom: 16,
-        duration: 200,
+        duration: DURATION,
         padding: SIDEBAR_PADDING
       })
 
@@ -209,6 +226,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         .addTo(mapRef.current)
 
     } else if (userLocationRef.current) {
+      // Main view at user location
       loadPins(mapRef.current)
       mapRef.current.flyTo({
         center: [userLocationRef.current.lng, userLocationRef.current.lat],
@@ -242,6 +260,8 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
   useEffect(() => {
     if (!mapRef.current || !flyToPin) return
 
+    setIsSidebarOpen(false);
+
     popupRef.current?.remove()
 
     const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
@@ -249,6 +269,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       .setHTML(createPopupHTML({
         title: flyToPin.title,
         description: flyToPin.description,
+        location: flyToPin.location,
         lng: flyToPin.lng,
         lat: flyToPin.lat,
         tags: flyToPin.tags
@@ -261,7 +282,6 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       center: [flyToPin.lng, flyToPin.lat],
       zoom: 16,
       duration: 500,
-      padding: SIDEBAR_PADDING
     })
 
     popup.on('close', () => {
@@ -274,6 +294,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
           padding: SIDEBAR_PADDING
         })
       }
+      setIsSidebarOpen(true);
     })
   }, [flyToPin])
 

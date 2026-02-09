@@ -12,3 +12,10 @@
   width: 100%;
   background-color: lightgrey;
 }
+
+h2 {
+  font-size: 28px;
+  margin: 0px;
+  color: #1a1a1a;
+  padding-bottom: 12px;
+}

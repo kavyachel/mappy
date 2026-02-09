@@ -10,10 +10,9 @@
   left: 16px;
   top: 16px;
   bottom: 16px;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  width: min(380px, calc(100vw - 32px));
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  width: min(400px, calc(100vw - 32px));
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
   z-index: 999;
   padding: 24px;
@@ -28,7 +27,7 @@
 .sidebar-divider {
   height: 1px;
   background: rgba(0, 0, 0, 0.08);
-  margin: 12px 0;
+  margin: 16px 0;
   flex-shrink: 0;
 }
 
@@ -38,14 +37,22 @@
   min-height: 0;
 }
 
+.hidden {
+  animation: slideOut 0.25s ease-out forwards;
+}
+
 @keyframes slideIn {
   from { transform: translateX(-100%); }
   to { transform: translateX(0); }
 }
 
-@media (max-width: 480px) {
+@keyframes slideOut {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@media (max-width: 768px) {
   .sidebar {
-    width: calc(100vw - 32px);
-    padding: 20px;
+    animation: slideOut 0.25s ease-out forwards;
   }
 }

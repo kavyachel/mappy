@@ -10,12 +10,13 @@ import { addPin } from './api/pins'
 
 function AppContent() {
   const [selectedLocation, setSelectedLocation] = useState(null)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [selectedTag, setSelectedTag] = useState(null)
   const [pins, setPins] = useState([])
   const [flyToPin, setFlyToPin] = useState(null)
   const { showAlert } = useAlert()
-
+  
   const closeForm = () => {
     setShowForm(false)
     setSelectedLocation(null)
@@ -41,7 +42,7 @@ function AppContent() {
 
   return (
     <>
-      <Sidebar onClose={closeForm} showOverlay={showForm}>
+      <Sidebar onClose={closeForm} showOverlay={showForm} isHidden={!isSidebarOpen}>
         {showForm ? (
           <PinForm
             location={selectedLocation}
@@ -49,7 +50,8 @@ function AppContent() {
             onClose={closeForm}
           />
         ) : (
-          <>
+          <> 
+            <h2>Your Pins</h2>
             <TagFilter
               selectedTag={selectedTag}
               onTagSelect={setSelectedTag}
@@ -68,6 +70,7 @@ function AppContent() {
         selectedTag={selectedTag}
         onPinsLoaded={setPins}
         flyToPin={flyToPin}
+        setIsSidebarOpen={setIsSidebarOpen}
       />
     </>
   )

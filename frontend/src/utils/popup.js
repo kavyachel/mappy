@@ -1,4 +1,4 @@
-export function createPopupHTML({ title, description, lng, lat, tags }) {
+export function createPopupHTML({ title, description, location, lng, lat, tags }) {
   const validTags = (tags || []).filter(tag => tag?.name)
 
   return `
@@ -11,8 +11,8 @@ export function createPopupHTML({ title, description, lng, lat, tags }) {
           ${description}
         </p>
       ` : ''}
-      <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
-        📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}
+      <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
+        📍 ${location ? location : `${lat.toFixed(4)}, ${lng.toFixed(4)}`}
       </div>
       ${validTags.length ? `
         <div style="display: flex; flex-wrap: wrap; gap: 6px;">
@@ -20,7 +20,7 @@ export function createPopupHTML({ title, description, lng, lat, tags }) {
             <span style="
               background: ${tag.color || '#95A5A6'};
               color: white;
-              font-size: 12px;
+              font-size: 14px;
               padding: 4px 8px;
               border-radius: 999px;
               font-weight: 500;

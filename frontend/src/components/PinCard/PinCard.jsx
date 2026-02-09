@@ -14,7 +14,7 @@ function PinCard({ pin, onClick }) {
         <span className="pin-card-title">{pin.title}</span>
       </div>
       <div className="pin-card-coords">
-        {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
+        📍 {pin.location ? pin.location : `${pin.lat.toFixed(4)}, ${pin.lng.toFixed(4)}`}
       </div>
     </div>
   )
