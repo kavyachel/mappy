@@ -6,7 +6,7 @@
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 10px 12px;
+  padding: 6px 0px;
   scrollbar-width: none;
 }
 
@@ -18,12 +18,12 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
-  border: 2px solid var(--tag-color, #d1d5db);
+  padding: 8px 12px;
+  border: 1px solid var(--tag-color, #d1d5db);
   border-radius: 16px;
   background: #f3f4f6;
   color: #374151;
-  font-size: 13px;
+  font-size: 14px;
   font-family: monospace;
   cursor: pointer;
   white-space: nowrap;

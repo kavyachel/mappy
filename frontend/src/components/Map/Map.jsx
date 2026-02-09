@@ -5,6 +5,7 @@ import { fetchPins } from '../../api/pins.js'
 import { createPopupHTML } from '../../utils/popup.js'
 import { NYC_CENTER, DEFAULT_ZOOM, GEOLOCATE_CONFIG } from '../../constants/map.js'
 import { useAlert } from '../Alert/Alert'
+import './Map.css'
 
 const LOCATION_CACHE_KEY = 'mappy_last_location'
 const SIDEBAR_PADDING = { left: 396, top: 0, right: 0, bottom: 0 }
@@ -54,6 +55,10 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       const marker = new mapboxgl.Marker({ color: markerColor })
         .setLngLat([pin.lng, pin.lat])
         .addTo(map)
+
+      marker.getElement().addEventListener('mouseenter', () =>{
+        marker.getElement().style.cursor = 'pointer'
+      })
 
       marker.getElement().addEventListener('click', (e) => {
         e.stopPropagation()
@@ -115,6 +120,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       onPinsLoadedRef.current?.(pins)
     } catch (error) {
       showAlert('Failed to load pins')
+      console.error('Error loading pins:', error)
     }
   }, [clearMarkers, addMarkers, showAlert])
 

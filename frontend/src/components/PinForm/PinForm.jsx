@@ -12,7 +12,7 @@ const CUSTOM_TAG_COLORS = [
 
 function PinForm({ location, onSubmit, onClose }) {
   const [selectedTags, setSelectedTags] = useState([])
-  const [customTags, setCustomTags] = useState({}) // { name: color }
+  const [customTags, setCustomTags] = useState({}) 
   const [showCustomForm, setShowCustomForm] = useState(false)
   const [customName, setCustomName] = useState('')
   const [customColor, setCustomColor] = useState(CUSTOM_TAG_COLORS[0])
@@ -37,11 +37,11 @@ function PinForm({ location, onSubmit, onClose }) {
 
   return (
     <div className="pin-form">
-      <button type="button" className="close-btn" onClick={onClose}>
-        <IoClose size={28} />
-      </button>
       <div className="form-header">
         <h2>📍 Create a Pin</h2>
+        <button type="button" className="close-btn" onClick={onClose}>
+          <IoClose size={20} />
+        </button>
       </div>
 
       <Formik
@@ -66,7 +66,7 @@ function PinForm({ location, onSubmit, onClose }) {
         <Form className="form">
           <div className="form-group">
             <label htmlFor="title">Title</label>
-            <Field type="text" id="title" name="title" className="input-field" />
+            <Field type="text" id="title" name="title" className="input-field" maxLength="25"/>
             <ErrorMessage name="title" component="div" className="error-message" />
           </div>
 
@@ -77,7 +77,7 @@ function PinForm({ location, onSubmit, onClose }) {
               id="description"
               name="description"
               className="input-field textarea-field"
-              maxLength="300"
+              maxLength="75"
             />
           </div>
 

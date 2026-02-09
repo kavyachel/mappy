@@ -15,7 +15,7 @@
   padding: 12px 16px;
   border-radius: 8px;
   font-family: var(--font-mono, monospace);
-  font-size: 14px;
+  font-size: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   animation: alertSlideIn 0.2s ease-out;
   max-width: 360px;

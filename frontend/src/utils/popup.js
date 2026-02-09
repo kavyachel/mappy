@@ -11,7 +11,7 @@ export function createPopupHTML({ title, description, lng, lat, tags }) {
           ${description}
         </p>
       ` : ''}
-      <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
+      <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
         📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}
       </div>
       ${validTags.length ? `
@@ -20,7 +20,7 @@ export function createPopupHTML({ title, description, lng, lat, tags }) {
             <span style="
               background: ${tag.color || '#95A5A6'};
               color: white;
-              font-size: 12px;
+              font-size: 14px;
               padding: 4px 8px;
               border-radius: 999px;
               font-weight: 500;

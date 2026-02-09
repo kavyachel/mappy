@@ -49,7 +49,8 @@ function AppContent() {
             onClose={closeForm}
           />
         ) : (
-          <>
+          <> 
+            <h2>Your Pins</h2>
             <TagFilter
               selectedTag={selectedTag}
               onTagSelect={setSelectedTag}
