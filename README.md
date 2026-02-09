@@ -52,12 +52,43 @@ Runs on `http://localhost:5173`.
 | POST | `/api/pins` | Create a pin |
 | DELETE | `/api/pins/<id>` | Delete a pin |
 
-Example:
+All requests require the `X-API-Key` header (see [Security](#security)).
+
+**Get pins in a viewport:**
 
 ```bash
-curl -X POST http://localhost:5000/api/pins \
+curl "http://localhost:5001/api/pins?viewport=40.70,-74.02,40.72,-73.99" \
+  -H "X-API-Key: $API_KEY"
+```
+
+**Filter by tag:**
+
+```bash
+curl "http://localhost:5001/api/pins?viewport=40.70,-74.02,40.72,-73.99&tag=Cafe" \
+  -H "X-API-Key: $API_KEY"
+```
+
+**Get a single pin:**
+
+```bash
+curl "http://localhost:5001/api/pins/1" \
+  -H "X-API-Key: $API_KEY"
+```
+
+**Create a pin:**
+
+```bash
+curl -X POST http://localhost:5001/api/pins \
   -H "Content-Type: application/json" \
-  -d '{"title": "Good coffee spot", "lat": 40.7128, "lng": -74.0060, "tags": ["Cafe"]}'
+  -H "X-API-Key: $API_KEY" \
+  -d '{"title": "Good coffee spot", "lat": 40.7128, "lng": -74.0060, "tags": [{"name": "Cafe", "color": "#8B4513"}]}'
+```
+
+**Delete a pin:**
+
+```bash
+curl -X DELETE "http://localhost:5001/api/pins/1" \
+  -H "X-API-Key: $API_KEY"
 ```
 
 ## Why I Built It This Way
@@ -107,6 +138,32 @@ Where this could go with user accounts:
 - **Per-user custom tags** that show up in *your* filter bar but not everyone else's
 - **Popular tags** that get promoted to the filter bar once they hit a usage threshold
 - **Tag management** — edit/delete/merge your custom tags
+
+## Security
+
+The API is protected by a shared API key. Every request must include an `X-API-Key` header — requests without it (or with the wrong key) get a `401 Unauthorized`.
+
+The key lives in `.env` on both sides:
+
+- **Backend** (`backend/.env`): `API_KEY=<key>`
+- **Frontend** (`frontend/.env`): `VITE_API_KEY=<key>`
+
+Both `.env` files are gitignored. To set it up, generate a key and add the same value to both:
+
+```bash
+# Generate a key
+python3 -c "import secrets; print(secrets.token_hex(32))"
+
+# Add to backend/.env
+API_KEY=your_generated_key
+
+# Add to frontend/.env
+VITE_API_KEY=your_generated_key
+```
+
+This means tools like Postman or bare `curl` calls won't work unless they include the header. CORS is also locked down to the frontend origin, so browsers won't even complete cross-origin requests from other domains.
+
+**What this doesn't cover**: This is not authentication — there are no user accounts or sessions. The API key just gates access to the API itself. If this were deployed publicly, you'd want rate limiting and proper auth on top of this.
 
 ## Project Structure
 
