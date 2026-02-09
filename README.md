@@ -15,9 +15,16 @@ cd backend
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-python run.py
-```
 
+# Generate a local API key
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
+Create a backend/.env file and paste your generated key:
+
+```bash
+cp .env.example .env
+API_KEY=your_generated_key
+```
 Runs on `http://localhost:5001`.
 
 ### Frontend
@@ -32,6 +39,7 @@ Grab a token from [Mapbox](https://account.mapbox.com/access-tokens/) and add it
 
 ```
 VITE_PUBLIC_MAPBOX_TOKEN=pk.your_token_here
+VITE_API_KEY=your_generated_key
 ```
 
 Then:
@@ -42,11 +50,26 @@ npm run dev
 
 Runs on `http://localhost:5173`.
 
+## Security
+
+The API is protected by a shared API key. Every request needs an `X-API-Key` header — without it (or with the wrong key) you get a `401`. CORS is locked to the frontend origin, and both `.env` files are gitignored. 
+
+Right now, we aren't using a managed "shared secret" or a database of keys. We are simply using a locally-generated string to authorize requests via the X-API-Key header. This is a temporary measure to ensure the plumbing works without the overhead of a full identity provider.
+
+For a production environment, we would move away from manual generation and use:
+
+- **Managed Secrets:** AWS Secrets Manager or Vault to handle keys.
+
+- **Real Auth:** A proper OIDC/OAuth2 provider (like Clerk or Auth0) to issue individual user tokens (JWTs) instead of a single static key.
+
+- **Automated Rotation:** Systems to automatically cycle keys so they aren't hardcoded in environments indefinitely.
+
+
 ## How It's Built
 
 ### Frontend
 
-Single-page React app with Vite. There's no router — the whole UI is just the map and a sidebar. State lives in `App.jsx` and flows down through props. I didn't reach for Redux or Zustand because the state graph is small enough that prop drilling is honestly clearer than introducing a store.
+Single-page React app with Vite. There's no router — the whole UI is just the map and a sidebar. All state lives in `App.jsx` and flows down through props. I avoided Redux/global state management libraries. Prop drilling was cleaner and more predictable for an app of this size.
 
 ```
 App (state owner)
@@ -58,21 +81,19 @@ App (state owner)
 └── AlertProvider (toast context)
 ```
 
-The trickiest part was wiring React and Mapbox together. Mapbox event handlers get registered once on mount, but they need access to the latest React state — so I store callback props in refs that get updated each render. That way I'm not tearing down and rebuilding Mapbox listeners constantly, but the closures still have fresh values.
-
-Popup creation was another area that got messy fast. Clicking a marker and clicking a pin in the sidebar both need to open the same popup, fly to it, and wire up a close handler that flies back to the user's location. I pulled that into a `showPinPopup` helper inside the Map component, which cut out about 40 lines of duplication.
-
-For keeping the map in sync after mutations, I tried to keep it simple. When you create or edit a pin, closing the form sets `selectedLocation` back to `null`, and the Map already has an effect that reloads pins when that happens — so there's no extra refresh logic needed. Deleting is the one case where I need an explicit nudge (a `refreshKey` counter) since the form isn't involved.
-
-All buttons share one of three base classes (`btn-primary`, `btn-secondary`, `btn-icon`) defined in `App.css`, with component-level overrides only where needed. This avoids the thing where every component slowly drifts into its own button style.
+- **The Mapbox-React Bridge**: Mapbox event handlers are tricky because they don't naturally "see" React state updates. To solve this, I used Refs to store callback props. This allows the map listeners to stay mounted (efficient) while still accessing the freshest state (accurate).
+- **Unified Popup Logic**: Opening a pin happens from two places: the Sidebar and the Map. To avoid 40+ lines of redundant code, I created a showPinPopup helper inside the Map component. It handles the "fly-to" animation, opening the popup, and the "fly-back" logic when closed.
+- **State Syncing**: I kept the data flow "lazy" to avoid complex refresh logic:
+  * Creates/Edits: Closing the form resets the location, which automatically triggers a pin reload.
+  * Deletions: Uses a simple refreshKey (counter) to force a quick update when a pin is removed.
 
 ### Backend
 
-Flask + SQLAlchemy + SQLite. The API is one blueprint with standard REST endpoints. I didn't add a service layer or repository pattern — the route handlers just talk directly to the models, which is the right level of abstraction for two tables.
+- **Flask + SQLAlchemy + SQLite**: The API is one blueprint with standard REST endpoints. I didn't add a service layer or repository pattern — the route handlers just talk directly to the models, which is the right level of abstraction for two tables.
 
-Caching uses Flask-Caching with an in-memory dict. Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache. It's a blunt strategy, but with a single-process SQLite backend there's no real benefit to doing anything smarter.
+- **Caching uses Flask-Caching with an in-memory dict**: Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache. It's a blunt strategy, but with a single-process SQLite backend there's no real benefit to doing anything smarter.
 
-Tags are stored as a JSON string on the Pin row rather than in a normalized join table. That means tag filtering uses `LIKE '%"tagname"%'` which won't scale to millions of rows, but it avoids the complexity of a many-to-many relationship for what's essentially just a label. A `normalize_tags` helper handles backwards compatibility with an older format where tags were just strings instead of objects.
+- **Serialized Tag Storage**: Tags are stored as a JSON string on the Pin row rather than in a normalized join table. That means tag filtering uses `LIKE '%"tagname"%'` which won't scale to millions of rows, but it avoids the complexity of a many-to-many relationship for what's essentially just a label. A `normalize_tags` helper handles backwards compatibility with an older format where tags were just strings instead of objects.
 
 ## API
 
@@ -128,23 +149,6 @@ curl -X DELETE http://localhost:5001/api/pins/1 \
 **Cached location** — Your last location is saved to `localStorage` so the map loads instantly where you left off instead of flying across the country from a default location while waiting for the geolocation API. If geolocation fails entirely, it falls back to NYC.
 
 **Server-side tag filtering** — Tags are filtered on the backend rather than fetching everything and filtering client-side. Scales better once you have a lot of pins. The filter bar only shows built-in tags — custom tags are descriptive labels on individual pins but don't clutter the filter UI. Without user accounts, if every custom tag showed up in the filter bar you'd quickly have hundreds of one-off tags.
-
-## Security
-
-The API is protected by a shared API key. Every request needs an `X-API-Key` header — without it (or with the wrong key) you get a `401`. CORS is locked to the frontend origin, and both `.env` files are gitignored.
-
-```bash
-# Generate a key
-python3 -c "import secrets; print(secrets.token_hex(32))"
-
-# backend/.env
-API_KEY=your_key
-
-# frontend/.env
-VITE_API_KEY=your_key
-```
-
-This is access control, not authentication — there are no user accounts or sessions. For a public deployment you'd want rate limiting and proper auth on top.
 
 ## Database
 
