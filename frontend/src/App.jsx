@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import Map from './components/Map/Map'
 import PinForm from './components/PinForm/PinForm'
@@ -6,7 +6,7 @@ import TagFilter from './components/TagFilter/TagFilter'
 import PinList from './components/PinList/PinList'
 import Sidebar from './components/Sidebar/Sidebar'
 import { AlertProvider, useAlert } from './components/Alert/Alert'
-import { addPin } from './api/pins'
+import { addPin, fetchTags } from './api/pins'
 
 function AppContent() {
   const [selectedLocation, setSelectedLocation] = useState(null)
@@ -15,7 +15,12 @@ function AppContent() {
   const [selectedTag, setSelectedTag] = useState(null)
   const [pins, setPins] = useState([])
   const [flyToPin, setFlyToPin] = useState(null)
+  const [tags, setTags] = useState([])
   const { showAlert } = useAlert()
+
+  useEffect(() => {
+    fetchTags().then(setTags).catch(() => showAlert('Failed to load tags'))
+  }, [])
   
   const closeForm = () => {
     setShowForm(false)
@@ -48,11 +53,13 @@ function AppContent() {
             location={selectedLocation}
             onSubmit={handlePinSubmit}
             onClose={closeForm}
+            tags={tags}
           />
         ) : (
           <> 
             <h2>Your Pins</h2>
             <TagFilter
+              tags={tags}
               selectedTag={selectedTag}
               onTagSelect={setSelectedTag}
             />

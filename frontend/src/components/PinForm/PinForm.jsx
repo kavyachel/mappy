@@ -2,7 +2,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik'
 import { useState } from 'react'
 import { IoClose, IoAdd } from 'react-icons/io5'
 import Tag from '../Tag/Tag'
-import { TAG_DEFINITIONS, getTagDefinition } from '../../constants/tagDefinitions'
+import { TAG_ICONS } from '../../constants/tagIcons'
 import './PinForm.css'
 
 const CUSTOM_TAG_COLORS = [
@@ -10,7 +10,7 @@ const CUSTOM_TAG_COLORS = [
   '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
 ]
 
-function PinForm({ location, onSubmit, onClose }) {
+function PinForm({ location, onSubmit, onClose, tags }) {
   const [selectedTags, setSelectedTags] = useState([])
   const [customTags, setCustomTags] = useState({}) 
   const [showCustomForm, setShowCustomForm] = useState(false)
@@ -58,7 +58,7 @@ function PinForm({ location, onSubmit, onClose }) {
             lng: location.lng,
             tags: selectedTags.map(name => ({
               name,
-              color: customTags[name] || getTagDefinition(name)?.color || '#95A5A6'
+              color: customTags[name] || tags.find(t => t.name === name)?.color || '#95A5A6'
             }))
           })
         }}
@@ -96,10 +96,11 @@ function PinForm({ location, onSubmit, onClose }) {
               </div>
             )}
             <div className="available-tags">
-              {TAG_DEFINITIONS.map(tag => (
+              {tags.map(tag => (
                 <Tag
                   key={tag.name}
                   name={tag.name}
+                  color={tag.color}
                   selectable
                   selected={selectedTags.includes(tag.name)}
                   onToggle={toggleTag}
@@ -120,6 +121,7 @@ function PinForm({ location, onSubmit, onClose }) {
                   type="text"
                   className="custom-tag-input"
                   placeholder="Tag name"
+                  maxLength={20}
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
@@ -136,7 +138,7 @@ function PinForm({ location, onSubmit, onClose }) {
                   ))}
                 </div>
                 <button type="button" className="add-custom-btn" onClick={addCustomTag}>
-                  Add
+                  ADD
                 </button>
               </div>
             )}

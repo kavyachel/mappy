@@ -39,5 +39,20 @@ def create_app():
     
     with app.app_context():
         db.create_all()
-    
+        _seed_default_tags()
+
     return app
+
+def _seed_default_tags():
+    from .models import Tag
+    if Tag.query.first():
+        return
+    defaults = [
+        ('Restaurant', '#FF6B6B'), ('Cafe', '#8B4513'), ('Gas Station', '#FFD93D'),
+        ('Hospital', '#E74C3C'), ('School', '#3498DB'), ('Grocery', '#27AE60'),
+        ('Gym', '#E67E22'), ('Entertainment', '#9B59B6'), ('Bar', '#34495E'),
+        ('Parking', '#95A5A6')
+    ]
+    for name, color in defaults:
+        db.session.add(Tag(name=name, color=color))
+    db.session.commit()

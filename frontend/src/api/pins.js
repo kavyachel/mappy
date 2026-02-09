@@ -8,6 +8,15 @@ const headers = {
   'X-API-Key': API_KEY
 }
 
+// Fetch all tags
+export const fetchTags = async () => {
+  const response = await fetch(`${API_BASE}/tags`, { headers })
+  if (!response.ok) {
+    throw new Error('Failed to fetch tags')
+  }
+  return response.json()
+}
+
 // Fetch pins within viewport bounds, optionally filtered by tag
 export const fetchPins = async (bounds, tag = null) => {
   const bbox = [
