@@ -20,7 +20,7 @@ h2 {
   padding-bottom: 12px;
 }
 
-.btn-primary {
+.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -38,33 +38,17 @@ h2 {
   box-shadow: 0 2px 8px rgba(41, 43, 45, 0.3);
 }
 
-.btn-primary:hover {
+.btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(41, 43, 45, 0.4);
 }
 
-.btn-primary:active {
+.btn:active {
   transform: translateY(0);
 }
 
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.secondary {
   padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  background: #007AD1;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: monospace;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-  background: #005FA3;
 }
 
 .btn-icon {

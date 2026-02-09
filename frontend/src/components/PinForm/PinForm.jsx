@@ -136,7 +136,7 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
               ))}
               <button
                 type="button"
-                className="add-tag-btn"
+                className="btn-icon add-tag-btn"
                 onClick={() => setShowCustomForm(!showCustomForm)}
               >
                 <IoAdd size={18} />
@@ -165,14 +165,14 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
                     />
                   ))}
                 </div>
-                <button type="button" className="btn-secondary" onClick={addCustomTag}>
+                <button type="button" className="btn secondary" onClick={addCustomTag}>
                   ADD
                 </button>
               </div>
             )}
           </div>
 
-          <button type="submit" className="btn-primary">{isEditing ? 'UPDATE PIN' : 'SAVE PIN'}</button>
+          <button type="submit" className="btn">{isEditing ? 'UPDATE PIN' : 'SAVE PIN'}</button>
         </Form>
       </Formik>
     </div>

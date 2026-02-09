@@ -1,6 +1,9 @@
 .pin-form {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .form {
@@ -89,22 +92,15 @@
   border-radius: 10px;
 }
 
-.pin-form .btn-primary {
+.pin-form .btn {
   margin-top: 8px;
 }
 
 .add-tag-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 32px;
   border: 2px dashed #cbd5e1;
   border-radius: 16px;
-  background: none;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .add-tag-btn:hover {
