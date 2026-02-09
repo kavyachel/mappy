@@ -1,6 +1,6 @@
 .mapboxgl-popup-content {
     border-radius: 14px;
-    min-height: 64px;
+    max-width: 480px;
 }
 
 .mapboxgl-popup-close-button {

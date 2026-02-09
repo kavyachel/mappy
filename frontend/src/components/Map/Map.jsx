@@ -9,6 +9,7 @@ import './Map.css'
 
 const LOCATION_CACHE_KEY = 'mappy_last_location'
 const SIDEBAR_PADDING = { left: 396, top: 0, right: 0, bottom: 0 }
+const DURATION = 400
 
 const getCachedLocation = () => {
   try {
@@ -82,7 +83,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         map.flyTo({
           center: [pin.lng, pin.lat],
           zoom: 16,
-          duration: 200
+          duration: DURATION
         })
 
         popup.on('close', () => {
@@ -206,7 +207,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       mapRef.current.flyTo({
         center: [selectedLocation.lng, selectedLocation.lat],
         zoom: 16,
-        duration: 200,
+        duration: DURATION,
         padding: SIDEBAR_PADDING
       })
 

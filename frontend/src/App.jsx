@@ -15,7 +15,7 @@ function AppContent() {
   const [pins, setPins] = useState([])
   const [flyToPin, setFlyToPin] = useState(null)
   const { showAlert } = useAlert()
-
+  
   const closeForm = () => {
     setShowForm(false)
     setSelectedLocation(null)

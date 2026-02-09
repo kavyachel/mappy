@@ -42,9 +42,13 @@
   to { transform: translateX(0); }
 }
 
-@media (max-width: 480px) {
-  .sidebar {
-    width: calc(100vw - 32px);
-    padding: 20px;
+@keyframes slideOut {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@media (max-width: 768px) {
+  .hidden {
+    animation: slideOut 0.25s ease-out forwards;;
   }
 }
