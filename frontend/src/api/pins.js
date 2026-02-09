@@ -1,3 +1,5 @@
+import { fetchLocation } from "./mapbox"
+
 const API_BASE = 'http://localhost:5001/api'
 const API_KEY = import.meta.env.VITE_API_KEY
 
@@ -31,12 +33,14 @@ export const fetchPins = async (bounds, tag = null) => {
 
 // Create a new pin
 export const addPin = async (pin) => {
+  const location = await fetchLocation(pin.lng, pin.lat)
   const response = await fetch(`${API_BASE}/pins`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
       title: pin.title,
       description: pin.description,
+      location,
       tags: pin.tags || [],
       lat: pin.lat,
       lng: pin.lng

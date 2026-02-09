@@ -69,6 +69,7 @@ def create_pin():
     pin = Pin(
         title=data.get("title", "Untitled"),
         description=data.get("description"),
+        location=data.get("location"),
         lat=lat,
         lng=lng
     )
@@ -86,6 +87,7 @@ def create_pin():
         "id": pin.id,
         "title": pin.title,
         "description": pin.description,
+        "location": pin.location,
         "lat": pin.lat,
         "lng": pin.lng,
         "tags": normalize_tags(pin.tags),
@@ -104,6 +106,7 @@ def retrieve_pin(id):
         "id": pin.id,
         "title": pin.title,
         "description": pin.description,
+        "location": pin.location,
         "lat": pin.lat,
         "lng": pin.lng,
         "tags": normalize_tags(pin.tags),
@@ -145,6 +148,7 @@ def retrieve_all_pins():
         "id": pin.id,
         "title": pin.title,
         "description": pin.description,
+        "location": pin.location,
         "lat": pin.lat,
         "lng": pin.lng,
         "tags": normalize_tags(pin.tags),
