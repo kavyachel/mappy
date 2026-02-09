@@ -1,8 +1,29 @@
+import json
 from flask import Blueprint, request, jsonify
 from .db import db
 from .models import Pin
 
 api = Blueprint("api", __name__)
+
+TAG_COLORS = {
+    'Restaurant': '#FF6B6B', 'Cafe': '#8B4513', 'Gas Station': '#FFD93D',
+    'Hospital': '#E74C3C', 'School': '#3498DB', 'Grocery': '#27AE60',
+    'Gym': '#E67E22', 'Entertainment': '#9B59B6', 'Bar': '#34495E',
+    'Parking': '#95A5A6'
+}
+
+def normalize_tags(tags_raw):
+    """Convert legacy string tags and object tags to consistent {name, color} format."""
+    if not tags_raw:
+        return []
+    tags = json.loads(tags_raw) if isinstance(tags_raw, str) else tags_raw
+    result = []
+    for tag in tags:
+        if isinstance(tag, str):
+            result.append({"name": tag, "color": TAG_COLORS.get(tag, "#95A5A6")})
+        elif isinstance(tag, dict) and "name" in tag:
+            result.append(tag)
+    return result
 
 # Create pin
 @api.route('/pins', methods=['POST'])
@@ -46,7 +67,7 @@ def create_pin():
         "description": pin.description,
         "lat": pin.lat,
         "lng": pin.lng,
-        "tags": pin.get_tags(),
+        "tags": normalize_tags(pin.tags),
         "created_at": pin.created_at.isoformat()
     }), 201
 
@@ -63,7 +84,7 @@ def retrieve_pin(id):
         "description": pin.description,
         "lat": pin.lat,
         "lng": pin.lng,
-        "tags": pin.get_tags(),
+        "tags": normalize_tags(pin.tags),
         "created_at": pin.created_at.isoformat()
     }), 200
 
@@ -103,7 +124,7 @@ def retrieve_all_pins():
         "description": pin.description,
         "lat": pin.lat,
         "lng": pin.lng,
-        "tags": pin.get_tags(),
+        "tags": normalize_tags(pin.tags),
         "created_at": pin.created_at.isoformat()
     } for pin in pins]), 200
 

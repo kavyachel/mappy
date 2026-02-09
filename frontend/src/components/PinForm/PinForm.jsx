@@ -2,7 +2,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik'
 import { useState } from 'react'
 import { IoClose, IoAdd } from 'react-icons/io5'
 import Tag from '../Tag/Tag'
-import { TAG_DEFINITIONS } from '../../constants/tagDefinitions'
+import { TAG_DEFINITIONS, getTagDefinition } from '../../constants/tagDefinitions'
 import './PinForm.css'
 
 const CUSTOM_TAG_COLORS = [
@@ -56,7 +56,10 @@ function PinForm({ location, onSubmit, onClose }) {
             description: values.description?.trim() || null,
             lat: location.lat,
             lng: location.lng,
-            tags: selectedTags
+            tags: selectedTags.map(name => ({
+              name,
+              color: customTags[name] || getTagDefinition(name)?.color || '#95A5A6'
+            }))
           })
         }}
       >
