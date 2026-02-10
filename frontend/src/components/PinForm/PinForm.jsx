@@ -73,7 +73,7 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
             <IoClose size={20} />
           </button>
         </div>
-        <p>📍 {`${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}</p>
+        <p className='coords'>📍 {`${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}</p>
       </div>
 
       <Formik
