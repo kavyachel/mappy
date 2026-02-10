@@ -1,15 +1,5 @@
-import { API_BASE, headers } from './config'
+import { API_BASE, headers, apiError } from './config'
 import { fetchLocation } from './mapbox'
-
-const apiError = async (response, fallback) => {
-  try {
-    const body = await response.json()
-    throw new Error(body.error || fallback)
-  } catch (e) {
-    if (e.message !== fallback) throw e
-    throw new Error(fallback)
-  }
-}
 
 // Fetch pins within viewport bounds, optionally filtered by tag
 export const fetchPins = async (bounds, tag = null) => {

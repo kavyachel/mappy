@@ -1,14 +1,4 @@
-import { API_BASE, headers } from './config'
-
-const apiError = async (response, fallback) => {
-  try {
-    const body = await response.json()
-    throw new Error(body.error || fallback)
-  } catch (e) {
-    if (e.message !== fallback) throw e
-    throw new Error(fallback)
-  }
-}
+import { API_BASE, headers, apiError } from './config'
 
 // Create a new tag
 export const createTag = async (tag) => {

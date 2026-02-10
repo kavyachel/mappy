@@ -74,7 +74,7 @@ function PinForm({ location, onSubmit, tags, onTagCreated, pin }) {
 
   return (
     <div className="pin-form">
-      <p className='coords'>📍 {`${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}</p>
+      <p className="coords">📍 {`${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}</p>
 
       <Formik
         enableReinitialize
