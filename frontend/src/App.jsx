@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { IoClose } from 'react-icons/io5'
 import './App.css'
 import Map from './components/Map/Map'
@@ -10,26 +11,20 @@ import { addPin, updatePin } from './api/pins'
 import { fetchTags } from './api/tags'
 
 function AppContent() {
+  const queryClient = useQueryClient()
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [selectedTag, setSelectedTag] = useState(null)
   const [pins, setPins] = useState([])
   const [flyToPin, setFlyToPin] = useState(null)
-  const [tags, setTags] = useState([])
   const [mapRefreshKey, setMapRefreshKey] = useState(0)
   const [pinsLoading, setPinsLoading] = useState(true)
   const [editingPin, setEditingPin] = useState(null)
   const { showAlert } = useAlert()
 
-  const refreshTags = useCallback(() => {
-    fetchTags().then(setTags).catch((e) => showAlert(e.message))
-  }, [showAlert])
+  const { data: tags = [] } = useQuery({ queryKey: ['tags'], queryFn: fetchTags, staleTime: Infinity })
 
-  useEffect(() => {
-    refreshTags()
-  }, [refreshTags])
-  
   const closeForm = () => {
     setShowForm(false)
     setSelectedLocation(null)
@@ -49,6 +44,7 @@ function AppContent() {
       } else {
         await addPin(pin)
       }
+      queryClient.invalidateQueries({ queryKey: ['pins'] })
       closeForm()
     } catch (error) {
       showAlert(error.message)
@@ -63,12 +59,17 @@ function AppContent() {
 
   const handlePinDelete = (pinId) => {
     setPins(prev => prev.filter(p => p.id !== pinId))
+    queryClient.invalidateQueries({ queryKey: ['pins'] })
     setMapRefreshKey(prev => prev + 1)
   }
 
   const handlePinClick = (pin) => {
     setFlyToPin(pin)
   }
+
+  const onTagCreated = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['tags'] })
+  }, [queryClient])
 
   return (
     <>
@@ -88,7 +89,7 @@ function AppContent() {
             location={selectedLocation}
             onSubmit={handlePinSubmit}
             tags={tags}
-            onTagCreated={refreshTags}
+            onTagCreated={onTagCreated}
             pin={editingPin}
           />
         ) : (

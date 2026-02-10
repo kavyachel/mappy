@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { fetchPins } from '../../api/pins.js'
@@ -27,6 +28,7 @@ const setCachedLocation = (lng, lat) => {
 
 function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, flyToPin, setIsSidebarOpen, refreshKey, setPinsLoading }) {
   const { showAlert } = useAlert()
+  const queryClient = useQueryClient()
   const mapRef = useRef()
   const mapContainerRef = useRef()
   const tempMarkerRef = useRef(null)
@@ -120,15 +122,16 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
   const loadPins = useCallback(async (map) => {
     try {
       const bounds = map.getBounds()
-      const pins = await fetchPins(
-        {
-          south: bounds.getSouth(),
-          west: bounds.getWest(),
-          north: bounds.getNorth(),
-          east: bounds.getEast()
-        },
-        selectedTagRef.current
-      )
+      const south = Math.round(bounds.getSouth() * 1000) / 1000
+      const west = Math.round(bounds.getWest() * 1000) / 1000
+      const north = Math.round(bounds.getNorth() * 1000) / 1000
+      const east = Math.round(bounds.getEast() * 1000) / 1000
+      const tag = selectedTagRef.current
+
+      const pins = await queryClient.fetchQuery({
+        queryKey: ['pins', south, west, north, east, tag ?? null],
+        queryFn: () => fetchPins({ south, west, north, east }, tag)
+      })
 
       // Map may have been destroyed while fetch was in flight
       if (map !== mapRef.current) return
@@ -141,7 +144,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       showAlert(error.message)
       setPinsLoadingRef.current?.(false)
     }
-  }, [clearMarkers, addMarkers, showAlert])
+  }, [clearMarkers, addMarkers, showAlert, queryClient])
 
   // Initialize map
   useEffect(() => {

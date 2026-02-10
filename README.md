@@ -96,6 +96,8 @@ App (state owner)
 
 - **Caching uses Flask-Caching with an in-memory dict**: Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache.
 
+- **Tags via join table**: Tags are stored in a separate `tag` table with a `pin_tags` many-to-many join table, so tag filtering uses a proper `JOIN` instead of string matching.
+
 ### Database
 
 SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/pins.db`. Tables are auto-created on first run.
@@ -110,7 +112,6 @@ SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/p
 | location | VARCHAR(100) | Reverse-geocoded address |
 | lat | FLOAT | Latitude |
 | lng | FLOAT | Longitude |
-| tags | TEXT | JSON string: `[{"name":"Cafe","color":"#8B4513"}]` |
 | created_at | DATETIME | Server default |
 
 **`tag`**
@@ -121,6 +122,13 @@ SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/p
 | name | VARCHAR(20) | Unique |
 | color | VARCHAR(7) | Hex color |
 | icon | VARCHAR(30) | Optional icon key |
+
+**`pin_tags`** (join table)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| pin_id | INTEGER | Foreign key → pin.id |
+| tag_id | INTEGER | Foreign key → tag.id |
 
 10 built-in tags are seeded on first run. Custom tags can be created from the pin form.
 
@@ -175,6 +183,7 @@ curl -X DELETE http://localhost:5001/api/pins/1 \
 
 **Server-side tag filtering**: Tags are filtered on the backend rather than fetching everything and filtering client-side. Scales better once you have a lot of pins. The filter bar only shows built-in tags. Custom tags are descriptive labels on individual pins but don't clutter the filter UI. Without user accounts, if every custom tag showed up in the filter bar you'd quickly have hundreds of one-off tags.
 
+
 ## Project Structure
 
 ```
@@ -184,8 +193,7 @@ backend/
     api.py         # REST endpoints
     models.py      # Pin + Tag models
     db.py          # SQLAlchemy setup
-    cache.py       # Flask-Caching setup
-    helpers.py     # Serialization, cache keys, tag normalization
+    helpers.py     # Pin serialization
   run.py           # Entry point
 
 frontend/
