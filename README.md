@@ -12,7 +12,7 @@ You'll need Node.js (v18+), Python (v3.9+), and a free Mapbox account.
 git clone https://github.com/kavyachel/mappy.git
 ```
 
-### Backend
+### Backend Setup
 
 ```bash
 cd backend
@@ -32,7 +32,7 @@ python3 run.py
 ```
 Runs on `http://localhost:5001`.
 
-### Frontend
+### Frontend Setup
 
 ```bash
 cd frontend
@@ -43,7 +43,7 @@ cp .env.example .env
 Grab a token from [Mapbox](https://account.mapbox.com/access-tokens/) and add it to `.env`:
 
 ```
-VITE_PUBLIC_MAPBOX_TOKEN=pk.your_token_here
+VITE_PUBLIC_MAPBOX_TOKEN=your_token_here
 VITE_API_KEY=your_generated_key
 ```
 
@@ -74,7 +74,7 @@ For a production environment, we would move away from manual generation and use:
 
 ### Frontend
 
-Single-page React app with Vite. There's no router, the whole UI is just the map and a sidebar. All state lives in `App.jsx` and flows down through props. I avoided Redux/global state management libraries. Prop drilling was cleaner and more predictable for an app of this size. React Query handles server state — tags are fetched once and cached indefinitely, while pin queries are cached by viewport bounds (rounded to 3 decimal places) with a 30-second stale time so panning back to a recently visited area skips the network request entirely.
+Single-page React app with Vite. All state lives in `App.jsx` and flows down through props. I avoided Redux/global state management libraries. Prop drilling was cleaner and more predictable for an app of this size.
 
 ```
 App (state owner)
@@ -87,16 +87,50 @@ App (state owner)
 ```
 
 - **The Mapbox-React Bridge**: Mapbox event handlers don't naturally "see" React state updates. To solve this, I used Refs to store callback props. This lets the map listeners stay mounted (efficient) while still accessing the freshest state (accurate).
+
 - **Unified Popup Logic**: Opening a pin happens from two places: the Sidebar and the Map. To avoid 40+ lines of redundant code, I created a showPinPopup helper inside the Map component. It handles the fly-to animation, opening the popup, and the fly-back logic when closed.
-- **State Syncing**: I kept the data flow "lazy" to avoid complex refresh logic:
-  * Creates/Edits: Closing the form resets the location, which automatically triggers a pin reload.
-  * Deletions: Uses a simple refreshKey (counter) to force a quick update when a pin is removed.
 
 ### Backend
 
-- **Flask + SQLAlchemy + SQLite**: The API is one blueprint with standard REST endpoints. I didn't add a service layer or repository pattern. The route handlers just talk directly to the models, which is the right level of abstraction for two tables.
+- **Flask + SQLAlchemy + SQLite**: The API is one blueprint with standard REST endpoints. The route handlers just talk directly to the models, which I felt was the right level of abstraction for two tables.
+
+- **Caching uses Flask-Caching with an in-memory dict**: Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache.
 
 - **Tags via join table**: Tags are stored in a separate `tag` table with a `pin_tags` many-to-many join table, so tag filtering uses a proper `JOIN` instead of string matching.
+
+### Database
+
+SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/pins.db`. Tables are auto-created on first run.
+
+**`pin`**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | INTEGER | Primary key, auto-increment |
+| title | VARCHAR(50) | Required |
+| description | TEXT | Optional |
+| location | VARCHAR(100) | Reverse-geocoded address |
+| lat | FLOAT | Latitude |
+| lng | FLOAT | Longitude |
+| created_at | DATETIME | Server default |
+
+**`tag`**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | INTEGER | Primary key |
+| name | VARCHAR(20) | Unique |
+| color | VARCHAR(7) | Hex color |
+| icon | VARCHAR(30) | Optional icon key |
+
+**`pin_tags`** (join table)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| pin_id | INTEGER | Foreign key → pin.id |
+| tag_id | INTEGER | Foreign key → tag.id |
+
+10 built-in tags are seeded on first run. Custom tags can be created from the pin form.
 
 ## API
 
@@ -139,51 +173,16 @@ curl -X DELETE http://localhost:5001/api/pins/1 \
 
 **JavaScript over TypeScript**: Mapbox GL JS has a pretty rough TypeScript story. The types are community-maintained, the map instance typing is clunky, and most of the Mapbox docs and examples are plain JS. For a project this size the overhead of fighting type definitions wasn't worth it. If this grew significantly I'd consider migrating, but right now JS keeps things moving fast.
 
-**Mapbox over Google Maps**: I felt like Mapbox had an easier learning curve, and I wanted something highly customizable. The free tier is generous (50k loads/month vs Google's limited quota), and the style editor made it easy to get a custom map look without writing CSS hacks.
+**Mapbox over Google Maps**: I felt like Mapbox had an easier learning curve, and I wanted something highly customizable. The free tier is also pretty generous (50k loads/month vs Google's limited quota).
 
-**SQLite over Postgres**: Zero setup, just a file. No server process to manage. If this ever needed to scale I'd switch to Postgres with PostGIS for proper spatial indexing. Right now viewport queries are just `WHERE lat BETWEEN x AND y` which scans the table, but it's fast enough for thousands of pins.
+**SQLite over Postgres**: This app is pretty light on the data (only two tables), so I went with something SQLite to keep it lightweight. If this ever needed to scale I'd switch to Postgres with PostGIS for proper spatial indexing. Right now viewport queries are just `WHERE lat BETWEEN x AND y` which scans the table, but it's fast enough for thousands of pins.
 
-**Flask over FastAPI**: Every request just hits SQLite and returns. There's no I/O concurrency to benefit from async. Flask has less magic, no Pydantic models, no dependency injection, just route handlers. FastAPI's auto-generated docs are nice, but not worth the extra abstractions for a project this small.
-
-**Viewport-scoped queries**: Pins are only fetched for the visible map area, not all at once. The sidebar list and markers always reflect what's on screen. The frontend re-fetches on every `moveend` event. React Query caches responses by rounded viewport coordinates on the client, so panning back to a recently visited area within 30 seconds reuses the cached data without hitting the server.
+**JSON tags instead of a join table**: Tags live as a JSON string on the Pin row: `[{"name":"Cafe","color":"#8B4513"}]`. That avoids a `pin_tags` join table. The tradeoff is tag queries use `LIKE` matching, which won't scale to millions of rows.
 
 **Cached location**: Your last location is saved to `localStorage` so the map loads instantly where you left off instead of flying across the country from a default location while waiting for the geolocation API. If geolocation fails entirely, it falls back to NYC.
 
 **Server-side tag filtering**: Tags are filtered on the backend rather than fetching everything and filtering client-side. Scales better once you have a lot of pins. The filter bar only shows built-in tags. Custom tags are descriptive labels on individual pins but don't clutter the filter UI. Without user accounts, if every custom tag showed up in the filter bar you'd quickly have hundreds of one-off tags.
 
-## Database
-
-SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/pins.db`. Tables are auto-created on first run.
-
-**`pin`**
-
-| Column | Type | Notes |
-|--------|------|-------|
-| id | INTEGER | Primary key, auto-increment |
-| title | VARCHAR(50) | Required |
-| description | TEXT | Optional |
-| location | VARCHAR(100) | Reverse-geocoded address |
-| lat | FLOAT | Latitude |
-| lng | FLOAT | Longitude |
-| created_at | DATETIME | Server default |
-
-**`tag`**
-
-| Column | Type | Notes |
-|--------|------|-------|
-| id | INTEGER | Primary key |
-| name | VARCHAR(20) | Unique |
-| color | VARCHAR(7) | Hex color |
-| icon | VARCHAR(30) | Optional icon key |
-
-**`pin_tags`** (join table)
-
-| Column | Type | Notes |
-|--------|------|-------|
-| pin_id | INTEGER | Foreign key → pin.id |
-| tag_id | INTEGER | Foreign key → tag.id |
-
-10 built-in tags are seeded on first run. Custom tags can be created from the pin form.
 
 ## Project Structure
 
@@ -209,7 +208,12 @@ frontend/
 
 ## What I'd Do Next
 
-- [ ] Image uploads on pins
-- [ ] Search by title or location
-- [ ] Shareable pin URLs
-- [ ] User accounts with per-user pins and custom tag management
+* **Edit/Delete Tags** - Add ability to edit and delete existing tags with confirmation dialogs
+* **Mobile Responsiveness** - Optimize layout and interactions for mobile devices and tablets
+* **Improve Pins Pop-ups** - Implement popup modals for edit and delete actions to improve UX
+* **Unit Tests** - Add comprehensive test suites using pytest (backend) and Jest (frontend)
+* **Collapsible Sidebar** - Add ability to toggle sidebar visibility for better screen real estate
+* **Image Uploads** - Allow users to attach images to pins for visual reference
+* **Search Functionality** - Add search capability by title or location to quickly find pins
+* **Shareable URLs** - Generate unique shareable links for individual pins
+* **User Accounts** - Implement authentication with per-user pin collections and custom tag management (plus crowdsourced tagging could get chaotic and may need moderation)
