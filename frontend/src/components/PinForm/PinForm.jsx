@@ -4,6 +4,7 @@ import { IoClose, IoAdd } from 'react-icons/io5'
 import Tag from '../Tag/Tag'
 import { useAlert } from '../Alert/Alert'
 import { createTag } from '../../api/tags'
+import { CUSTOM_ICON_OPTIONS } from '../../constants/tagIcons'
 import './PinForm.css'
 
 const CUSTOM_TAG_COLORS = [
@@ -23,7 +24,7 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
     if (pin?.tags) {
       const custom = {}
       pin.tags.forEach(t => {
-        if (!builtInTagNames.has(t.name)) custom[t.name] = t.color
+        if (!builtInTagNames.has(t.name)) custom[t.name] = { color: t.color, icon: t.icon || null }
       })
       return custom
     }
@@ -32,12 +33,15 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
   const [showCustomForm, setShowCustomForm] = useState(false)
   const [customName, setCustomName] = useState('')
   const [customColor, setCustomColor] = useState(CUSTOM_TAG_COLORS[0])
+  const [customIcon, setCustomIcon] = useState(null)
   const { showAlert } = useAlert()
 
-  const toggleTag = (name) => {
-    setSelectedTags(prev =>
-      prev.includes(name) ? prev.filter(t => t !== name) : [...prev, name]
-    )
+  const selectTag = (name) => {
+    setSelectedTags(prev => prev.includes(name) ? prev : [...prev, name])
+  }
+
+  const removeTag = (name) => {
+    setSelectedTags(prev => prev.filter(t => t !== name))
   }
 
   const addCustomTag = async () => {
@@ -46,13 +50,14 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
       if (!name) return
       if (selectedTags.includes(name)) return
 
-      await createTag({ name, color: customColor })
+      await createTag({ name, color: customColor, icon: customIcon })
       onTagCreated?.()
 
-      setCustomTags(prev => ({ ...prev, [name]: customColor }))
+      setCustomTags(prev => ({ ...prev, [name]: { color: customColor, icon: customIcon } }))
       setSelectedTags(prev => [...prev, name])
       setCustomName('')
       setCustomColor(CUSTOM_TAG_COLORS[0])
+      setCustomIcon(null)
       setShowCustomForm(false)
     } catch (error) {
       showAlert('Failed to create tag')
@@ -84,10 +89,15 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
             description: values.description?.trim() || null,
             lat: location.lat,
             lng: location.lng,
-            tags: selectedTags.map(name => ({
-              name,
-              color: customTags[name] || tags.find(t => t.name === name)?.color || '#95A5A6'
-            }))
+            tags: selectedTags.map(name => {
+              const custom = customTags[name]
+              const builtin = tags.find(t => t.name === name)
+              return {
+                name,
+                color: custom?.color || builtin?.color || '#95A5A6',
+                icon: custom?.icon || builtin?.icon || null
+              }
+            })
           })
         }}
       >
@@ -113,14 +123,19 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
             <label>Tags</label>
             {selectedTags.length > 0 && (
               <div className="selected-tags">
-                {selectedTags.map(name => (
-                  <Tag
-                    key={name}
-                    name={name}
-                    color={customTags[name]}
-                    onRemove={toggleTag}
-                  />
-                ))}
+                {selectedTags.map(name => {
+                  const custom = customTags[name]
+                  const builtin = tags.find(t => t.name === name)
+                  return (
+                    <Tag
+                      key={name}
+                      name={name}
+                      color={custom?.color || builtin?.color}
+                      icon={custom?.icon || builtin?.icon}
+                      onRemove={removeTag}
+                    />
+                  )
+                })}
               </div>
             )}
             <div className="available-tags">
@@ -129,9 +144,10 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
                   key={tag.name}
                   name={tag.name}
                   color={tag.color}
+                  icon={tag.icon}
                   selectable
                   selected={selectedTags.includes(tag.name)}
-                  onToggle={toggleTag}
+                  onToggle={selectTag}
                 />
               ))}
               <button
@@ -154,12 +170,24 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
                   onChange={(e) => setCustomName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
                 />
-                <div className="color-swatches">
+                <div className="swatches">
+                  {Object.entries(CUSTOM_ICON_OPTIONS).map(([key, Icon]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`swatch icon ${customIcon === key ? 'selected' : ''}`}
+                      onClick={() => setCustomIcon(customIcon === key ? null : key)}
+                    >
+                      <Icon size={16} />
+                    </button>
+                  ))}
+                </div>
+                <div className="swatches">
                   {CUSTOM_TAG_COLORS.map(color => (
                     <button
                       key={color}
                       type="button"
-                      className={`color-swatch ${customColor === color ? 'selected' : ''}`}
+                      className={`swatch color ${customColor === color ? 'selected' : ''}`}
                       style={{ backgroundColor: color }}
                       onClick={() => setCustomColor(color)}
                     />

@@ -20,18 +20,18 @@
   opacity: 0.8;
 }
 
-.tag-selected {
-  opacity: 1;
-  box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
-}
 
 .tag-remove {
-  color: white;
+  background: none;
+  border: none;
+  color: inherit;
   font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
   margin-left: 2px;
 }
 
 .tag-remove:hover {
-  color: white;
   transform: scale(1.1);
 }

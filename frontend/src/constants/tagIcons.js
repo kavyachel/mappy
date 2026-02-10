@@ -8,7 +8,19 @@ import {
   MdFitnessCenter,
   MdTheaterComedy,
   MdLocalBar,
-  MdLocalParking
+  MdLocalParking,
+  MdStar,
+  MdFavorite,
+  MdHome,
+  MdWork,
+  MdShoppingCart,
+  MdFlightTakeoff,
+  MdPets,
+  MdMusicNote,
+  MdCameraAlt,
+  MdMenuBook,
+  MdDirectionsBike,
+  MdBeachAccess
 } from 'react-icons/md'
 
 export const TAG_ICONS = {
@@ -22,4 +34,15 @@ export const TAG_ICONS = {
   'Entertainment': MdTheaterComedy,
   'Bar': MdLocalBar,
   'Parking': MdLocalParking
+}
+
+export const CUSTOM_ICON_OPTIONS = {
+  'star': MdStar,
+  'favorite': MdFavorite,
+  'home': MdHome,
+  'work': MdWork,
+  'travel': MdFlightTakeoff,
+  'pets': MdPets,
+  'music': MdMusicNote,
+  'book': MdMenuBook,
 }

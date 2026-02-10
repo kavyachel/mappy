@@ -132,13 +132,7 @@
   border-color: #007AD1;
 }
 
-.color-swatches {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.color-swatch {
+.swatch {
   width: 28px;
   height: 28px;
   border: none;
@@ -147,11 +141,40 @@
   transition: transform 0.15s ease;
 }
 
-.color-swatch:hover {
+.icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #e5e7eb;
+  color: #6b7280;
+  background: none;
+  transition: all 0.15s ease;
+}
+
+.icon:hover {
+  border-color: #007AD1;
+  color: #007AD1;
+}
+
+.icon.selected {
+  border-color: #007AD1;
+  background: #e0f2fe;
+  color: #007AD1;
+}
+
+.swatches {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color:hover {
   transform: scale(1.1);
 }
 
-.color-swatch.selected {
+.color.selected {
   box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
 }
 
