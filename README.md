@@ -65,7 +65,7 @@ For a production environment, we would move away from manual generation and use:
 
 - **Managed Secrets:** AWS Secrets Manager or Vault to handle keys.
 
-- **Real Auth:** A proper OIDC/OAuth2 provider (like Clerk or Auth0) to issue individual user tokens (JWTs) instead of a single static key.
+- **Real Auth:** A proper OAuth provider to issue individual JWT tokens instead of a single static key.
 
 - **Automated Rotation:** Automatic key cycling so they aren't hardcoded in environments indefinitely.
 
@@ -89,6 +89,7 @@ App (state owner)
 - **The Mapbox-React Bridge**: Mapbox event handlers don't naturally "see" React state updates. To solve this, I used Refs to store callback props. This lets the map listeners stay mounted (efficient) while still accessing the freshest state (accurate).
 
 - **Unified Popup Logic**: Opening a pin happens from two places: the Sidebar and the Map. To avoid 40+ lines of redundant code, I created a showPinPopup helper inside the Map component. It handles the fly-to animation, opening the popup, and the fly-back logic when closed.
+
 - **State Syncing**: Mutations invalidate React Query's cache so stale data is refetched automatically:
   * Creates/Edits: Invalidates pin queries, then closing the form resets the location which triggers a reload.
   * Deletions: Invalidates pin queries and bumps a refreshKey to trigger an immediate map update.
@@ -97,10 +98,6 @@ App (state owner)
 ### Backend
 
 - **Flask + SQLAlchemy + SQLite**: The API is one blueprint with standard REST endpoints. The route handlers just talk directly to the models, which I felt was the right level of abstraction for two tables.
-
-- **Caching uses Flask-Caching with an in-memory dict**: Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache.
-
-- **Tags via join table**: Tags are stored in a separate `tag` table with a `pin_tags` many-to-many join table, so tag filtering uses a proper `JOIN` instead of string matching.
 
 ### Database
 
@@ -182,8 +179,6 @@ curl -X DELETE http://localhost:5001/api/pins/1 \
 **SQLite over Postgres**: This app is pretty light on the data (only two tables), so I went with something SQLite to keep it lightweight. If this ever needed to scale I'd switch to Postgres with PostGIS for proper spatial indexing. Right now viewport queries are just `WHERE lat BETWEEN x AND y` which scans the table, but it's fast enough for thousands of pins.
 
 **Tags in a join table**: Tags live in a separate `tag` table linked to pins through a `pin_tags` many-to-many join table. This means tag filtering uses a proper `JOIN` query instead of string matching, which scales cleanly and avoids the fragility of parsing JSON blobs in SQL.
-
-**Viewport-scoped queries**: Pins are only fetched for the visible map area, not all at once. The sidebar list and markers always reflect what's on screen. The frontend re-fetches on every `moveend` event. React Query caches responses by rounded viewport coordinates on the client, so panning back to a recently visited area within 30 seconds reuses the cached data without hitting the server.
 
 **Cached location**: Your last location is saved to `localStorage` so the map loads instantly where you left off instead of flying across the country from a default location while waiting for the geolocation API. If geolocation fails entirely, it falls back to NYC.
 
