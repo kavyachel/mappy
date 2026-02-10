@@ -12,7 +12,7 @@ You'll need Node.js (v18+), Python (v3.9+), and a free Mapbox account.
 git clone https://github.com/kavyachel/mappy.git
 ```
 
-### Backend
+### Backend Setup
 
 ```bash
 cd backend
@@ -32,7 +32,7 @@ python3 run.py
 ```
 Runs on `http://localhost:5001`.
 
-### Frontend
+### Frontend Setup
 
 ```bash
 cd frontend
