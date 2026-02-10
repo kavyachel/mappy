@@ -78,14 +78,27 @@
   color: #9ca3af;
 }
 
+.pin-card-tags {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-top: 2px;
+}
+
+.pin-card-tags::-webkit-scrollbar {
+  display: none;
+}
+
 .pin-card-tag {
-  display: inline-block;
-  align-self: flex-start;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
   padding: 4px 10px;
   border-radius: 999px;
   color: white;
   font-weight: 500;
   white-space: nowrap;
-  margin-top: 2px;
 }

@@ -18,3 +18,4 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), unique=True, nullable=False)
     color = db.Column(db.String(7), nullable=False)  # Hex color code
+    icon = db.Column(db.String(30), nullable=True)

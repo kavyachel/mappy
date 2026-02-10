@@ -1,4 +1,4 @@
-import { TAG_ICONS } from '../../constants/tagIcons'
+import { TAG_ICONS, CUSTOM_ICON_OPTIONS } from '../../constants/tagIcons'
 import './TagFilter.css'
 
 function TagFilter({ tags, selectedTag, onTagSelect }) {
@@ -12,7 +12,7 @@ function TagFilter({ tags, selectedTag, onTagSelect }) {
           All
         </button>
         {tags.map(tag => {
-          const Icon = TAG_ICONS[tag.name]
+          const Icon = TAG_ICONS[tag.name] || (tag.icon && CUSTOM_ICON_OPTIONS[tag.icon])
           return (
             <button
               key={tag.name}

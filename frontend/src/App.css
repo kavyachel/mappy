@@ -17,7 +17,6 @@ h2 {
   font-size: 28px;
   margin: 0px;
   color: #1a1a1a;
-  padding-bottom: 12px;
 }
 
 .btn {
@@ -47,6 +46,12 @@ h2 {
   transform: translateY(0);
 }
 
+.btn-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .secondary {
   padding: 8px 16px;
 }
@@ -59,14 +64,14 @@ h2 {
   border: none;
   padding: 4px;
   border-radius: 6px;
-  color: #6b7280;
+  color: #1a1a1a;
   cursor: pointer;
   transition: all 0.15s ease;
   line-height: 1;
 }
 
 .btn-icon:hover {
-  color: #374151;
+  transform: scale(1.1);
 }
 
 .loading {

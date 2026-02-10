@@ -126,13 +126,13 @@ def create_tag():
     if Tag.query.filter_by(name=name).first():
         return {"error": "Tag already exists"}, 400
 
-    tag = Tag(name=name, color=color)
+    tag = Tag(name=name, color=color, icon=data.get("icon"))
     db.session.add(tag)
     db.session.commit()
 
-    return jsonify({"id": tag.id, "name": tag.name, "color": tag.color}), 201
+    return jsonify({"id": tag.id, "name": tag.name, "color": tag.color, "icon": tag.icon}), 201
 
 @api.route('/tags', methods=['GET'])
 def retrieve_all_tags():
     tags = Tag.query.all()
-    return jsonify([{"id": t.id, "name": t.name, "color": t.color} for t in tags]), 200
+    return jsonify([{"id": t.id, "name": t.name, "color": t.color, "icon": t.icon} for t in tags]), 200

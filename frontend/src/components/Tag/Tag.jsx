@@ -1,8 +1,8 @@
 import './Tag.css'
-import { TAG_ICONS } from '../../constants/tagIcons'
+import { TAG_ICONS, CUSTOM_ICON_OPTIONS } from '../../constants/tagIcons'
 
-function Tag({ name, color, onRemove, selectable, selected, onToggle }) {
-  const Icon = TAG_ICONS[name]
+function Tag({ name, color, icon, onRemove, selectable, selected, onToggle }) {
+  const Icon = TAG_ICONS[name] || (icon && CUSTOM_ICON_OPTIONS[icon])
   const bgColor = color || '#95A5A6'
 
   const handleClick = () => {
@@ -13,15 +13,15 @@ function Tag({ name, color, onRemove, selectable, selected, onToggle }) {
 
   return (
     <div
-      className={`tag ${selectable ? 'tag-selectable' : ''} ${selected ? 'tag-selected' : ''}`}
+      className={`tag ${selectable ? 'tag-selectable' : ''}`}
       onClick={handleClick}
       style={{ backgroundColor: bgColor }}
     >
-      {Icon && <Icon className="tag-icon" />}
+      {Icon && <Icon />}
       <span>{name}</span>
       {onRemove && (
         <button
-          className="btn-icon tag-remove"
+          className="tag-remove"
           onClick={(e) => {
             e.stopPropagation()
             onRemove(name)

@@ -4,36 +4,21 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  padding-bottom: 8px;
 }
 
 .form {
-  margin-top: 16px;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.form-header {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-header p {
-  margin-top: 2px;
+.coords {
   color: #6b7280;
   font-size: 14px;
+  margin-bottom: 4px;
 }
-
-.form-title h2 {
-  font-size: 26px;
-}
-
-.form-title {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
 
 .form-group {
   display: flex;
@@ -93,7 +78,7 @@
 }
 
 .pin-form .btn {
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .add-tag-btn {
@@ -113,7 +98,7 @@
   flex-direction: column;
   gap: 10px;
   margin-top: 10px;
-  padding: 12px;
+  padding: 16px;
   background: white;
   border: 1.5px solid #e5e7eb;
   border-radius: 10px;
@@ -132,13 +117,7 @@
   border-color: #007AD1;
 }
 
-.color-swatches {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.color-swatch {
+.swatch {
   width: 28px;
   height: 28px;
   border: none;
@@ -147,11 +126,40 @@
   transition: transform 0.15s ease;
 }
 
-.color-swatch:hover {
+.icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #e5e7eb;
+  color: #6b7280;
+  background: none;
+  transition: all 0.15s ease;
+}
+
+.icon:hover {
+  border-color: #007AD1;
+  color: #007AD1;
+}
+
+.icon.selected {
+  border-color: #007AD1;
+  background: #e0f2fe;
+  color: #007AD1;
+}
+
+.swatches {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color:hover {
   transform: scale(1.1);
 }
 
-.color-swatch.selected {
+.color.selected {
   box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
 }
 

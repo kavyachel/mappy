@@ -38,6 +38,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
   const selectedTagRef = useRef(selectedTag)
   const isFirstLocate = useRef(true)
   const setPinsLoadingRef = useRef(setPinsLoading)
+  const viewCenterRef = useRef(null)
 
   // Keep refs updated with latest values
   onLocationSelectRef.current = onLocationSelect
@@ -51,8 +52,12 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
     markersRef.current = []
   }, [])
 
-  // Open a popup for a pin, fly to it, and return to user location on close
+  // Open a popup for a pin and return to previous view on close
   const showPinPopup = useCallback((pin, map) => {
+    // Capture where the user was before we fly away
+    const center = map.getCenter()
+    viewCenterRef.current = { lng: center.lng, lat: center.lat, zoom: map.getZoom() }
+
     popupRef.current?.remove()
 
     const popup = new mapboxgl.Popup({ offset: 25, maxWidth: '400px' })
@@ -72,10 +77,11 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
     popup.on('close', () => {
       popupRef.current = null
       setPinsLoadingRef.current?.(true)
-      if (userLocationRef.current) {
+      const returnTo = viewCenterRef.current
+      if (returnTo) {
         map.flyTo({
-          center: [userLocationRef.current.lng, userLocationRef.current.lat],
-          zoom: DEFAULT_ZOOM,
+          center: [returnTo.lng, returnTo.lat],
+          zoom: returnTo.zoom,
           duration: 500,
           padding: SIDEBAR_PADDING
         })
@@ -132,7 +138,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       onPinsLoadedRef.current?.(pins)
       setPinsLoadingRef.current?.(false)
     } catch (error) {
-      showAlert('Failed to load pins')
+      showAlert(error.message)
       setPinsLoadingRef.current?.(false)
     }
   }, [clearMarkers, addMarkers, showAlert])
@@ -155,6 +161,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
     // Set initial user location from cache
     if (cached) {
       userLocationRef.current = cached
+      viewCenterRef.current = { ...cached, zoom: DEFAULT_ZOOM }
     }
 
     const handleClick = (e) => {
@@ -169,6 +176,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       const lng = e.coords.longitude
       const lat = e.coords.latitude
       userLocationRef.current = { lng, lat }
+      viewCenterRef.current = { lng, lat, zoom: DEFAULT_ZOOM }
       setCachedLocation(lng, lat)
 
       // Only fly if this is first locate and we started from a different spot
@@ -215,8 +223,11 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
     tempMarkerRef.current?.remove()
     tempMarkerRef.current = null
 
-    // To create a new pin
     if (selectedLocation) {
+      // Capture current view before flying to pin location
+      const center = mapRef.current.getCenter()
+      viewCenterRef.current = { lng: center.lng, lat: center.lat, zoom: mapRef.current.getZoom() }
+
       mapRef.current.flyTo({
         center: [selectedLocation.lng, selectedLocation.lat],
         zoom: 16,
@@ -228,33 +239,27 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
         .setLngLat([selectedLocation.lng, selectedLocation.lat])
         .addTo(mapRef.current)
 
-    } else if (userLocationRef.current) {
-      // Main view at user location
-      loadPins(mapRef.current)
-      mapRef.current.flyTo({
-        center: [userLocationRef.current.lng, userLocationRef.current.lat],
-        zoom: DEFAULT_ZOOM,
-        duration: 500,
-        padding: SIDEBAR_PADDING
-      })
+    } else {
+      // Form closed — return to where the user was browsing
+      const returnTo = viewCenterRef.current
+      if (returnTo) {
+        loadPins(mapRef.current)
+        mapRef.current.flyTo({
+          center: [returnTo.lng, returnTo.lat],
+          zoom: returnTo.zoom,
+          duration: 500,
+          padding: SIDEBAR_PADDING
+        })
+      }
     }
   }, [selectedLocation, loadPins])
 
-  // Reload pins when tag filter changes
+  // Reload pins when tag filter changes (stay in place)
   useEffect(() => {
     if (!mapRef.current) return
 
-    // Close any open popup and fly to user location
     popupRef.current?.remove()
     popupRef.current = null
-
-    if (userLocationRef.current) {
-      mapRef.current.flyTo({
-        center: [userLocationRef.current.lng, userLocationRef.current.lat],
-        zoom: DEFAULT_ZOOM,
-        duration: 500
-      })
-    }
 
     loadPins(mapRef.current)
   }, [selectedTag, loadPins])

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
+import { IoClose } from 'react-icons/io5'
 import './App.css'
 import Map from './components/Map/Map'
 import PinForm from './components/PinForm/PinForm'
-import TagFilter from './components/TagFilter/TagFilter'
 import PinList from './components/PinList/PinList'
 import Sidebar from './components/Sidebar/Sidebar'
 import { AlertProvider, useAlert } from './components/Alert/Alert'
@@ -23,7 +23,7 @@ function AppContent() {
   const { showAlert } = useAlert()
 
   const refreshTags = useCallback(() => {
-    fetchTags().then(setTags).catch(() => showAlert('Failed to load tags'))
+    fetchTags().then(setTags).catch((e) => showAlert(e.message))
   }, [showAlert])
 
   useEffect(() => {
@@ -51,7 +51,7 @@ function AppContent() {
       }
       closeForm()
     } catch (error) {
-      showAlert(editingPin ? 'Failed to update pin' : 'Failed to create pin')
+      showAlert(error.message)
     }
   }
 
@@ -72,33 +72,39 @@ function AppContent() {
 
   return (
     <>
-      <Sidebar onClose={closeForm} showOverlay={showForm} isHidden={!isSidebarOpen}>
+      <Sidebar
+        onClose={closeForm}
+        showOverlay={showForm}
+        isHidden={!isSidebarOpen}
+        title={showForm ? (editingPin ? 'Edit Pin' : 'Create a Pin') : 'My Pins'}
+        action={showForm ? (
+          <button type="button" className="btn-icon" onClick={closeForm}>
+            <IoClose size={18} />
+          </button>
+        ) : null}
+      >
         {showForm ? (
           <PinForm
             location={selectedLocation}
             onSubmit={handlePinSubmit}
-            onClose={closeForm}
             tags={tags}
             onTagCreated={refreshTags}
             pin={editingPin}
           />
         ) : (
-          <> 
-            <h2>Your Pins</h2>
-            <TagFilter
+          pinsLoading ? (
+            <div className="loading"></div>
+          ) : (
+            <PinList
+              pins={pins}
+              onPinClick={handlePinClick}
+              onPinDelete={handlePinDelete}
+              onPinEdit={handlePinEdit}
               tags={tags}
               selectedTag={selectedTag}
               onTagSelect={setSelectedTag}
             />
-            <div className="sidebar-divider" />
-            <div className="sidebar-content-list">
-              {pinsLoading ? (
-                <div className="loading"></div>
-              ) : (
-                <PinList pins={pins} onPinClick={handlePinClick} onPinDelete={handlePinDelete} onPinEdit={handlePinEdit} />
-              )}
-            </div>
-          </>
+          )
         )}
       </Sidebar>
 

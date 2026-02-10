@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { IoEllipsisVertical } from 'react-icons/io5'
 import { deletePin } from '../../api/pins'
+import { TAG_ICONS, CUSTOM_ICON_OPTIONS } from '../../constants/tagIcons'
+import { useAlert } from '../Alert/Alert'
 import './PinCard.css'
 
 function PinCard({ pin, onClick, onDelete, onEdit }) {
-  const firstTag = pin.tags?.[0]
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
+  const { showAlert } = useAlert()
 
   const handleDelete = async (e) => {
     e.stopPropagation()
@@ -14,7 +16,7 @@ function PinCard({ pin, onClick, onDelete, onEdit }) {
       await deletePin(pin.id)
       onDelete?.(pin.id)
     } catch (error) {
-      console.error('Failed to delete pin', error)
+      showAlert(error.message)
     }
   }
 
@@ -32,7 +34,7 @@ function PinCard({ pin, onClick, onDelete, onEdit }) {
   return (
     <div
       className="pin-card"
-      style={{ '--accent': firstTag?.color || '#9ca3af' }}
+      style={{ '--accent': pin.tags?.[0]?.color || '#9ca3af' }}
       onClick={() => onClick(pin)}
     >
       <div className="pin-card-menu" ref={menuRef}>
@@ -57,10 +59,18 @@ function PinCard({ pin, onClick, onDelete, onEdit }) {
       <span className="pin-card-location">
         📍 {pin.location ? pin.location : `${pin.lat.toFixed(4)}, ${pin.lng.toFixed(4)}`}
       </span>
-      {firstTag && (
-        <span className="pin-card-tag" style={{ background: firstTag.color }}>
-          {firstTag.name}
-        </span>
+      {pin.tags?.length > 0 && (
+        <div className="pin-card-tags">
+          {pin.tags.map(tag => {
+            const Icon = TAG_ICONS[tag.name] || (tag.icon && CUSTOM_ICON_OPTIONS[tag.icon])
+            return (
+              <span key={tag.name} className="pin-card-tag" style={{ background: tag.color }}>
+                {Icon && <Icon size={12} />}
+                {tag.name}
+              </span>
+            )
+          })}
+        </div>
       )}
     </div>
   )
