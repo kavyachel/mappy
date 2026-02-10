@@ -74,7 +74,7 @@ For a production environment, we would move away from manual generation and use:
 
 ### Frontend
 
-Single-page React app with Vite. There's no router, the whole UI is just the map and a sidebar. All state lives in `App.jsx` and flows down through props. I avoided Redux/global state management libraries. Prop drilling was cleaner and more predictable for an app of this size.
+Single-page React app with Vite. All state lives in `App.jsx` and flows down through props. I avoided Redux/global state management libraries. Prop drilling was cleaner and more predictable for an app of this size.
 
 ```
 App (state owner)
@@ -87,15 +87,14 @@ App (state owner)
 ```
 
 - **The Mapbox-React Bridge**: Mapbox event handlers don't naturally "see" React state updates. To solve this, I used Refs to store callback props. This lets the map listeners stay mounted (efficient) while still accessing the freshest state (accurate).
+
 - **Unified Popup Logic**: Opening a pin happens from two places: the Sidebar and the Map. To avoid 40+ lines of redundant code, I created a showPinPopup helper inside the Map component. It handles the fly-to animation, opening the popup, and the fly-back logic when closed.
 
 ### Backend
 
 - **Flask + SQLAlchemy + SQLite**: The API is one blueprint with standard REST endpoints. The route handlers just talk directly to the models, which I felt was the right level of abstraction for two tables.
 
-- **Caching uses Flask-Caching with an in-memory dict**: Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache. It's a blunt strategy, but with a single-process SQLite backend there's no real benefit to doing anything smarter.
-
-- **Serialized Tag Storage**: Tags are stored as a JSON string on the Pin row rather than in a normalized join table. That means tag filtering uses `LIKE '%"tagname"%'` which won't scale to millions of rows, but it avoids the complexity of a many-to-many relationship for what's essentially just a label. A `normalize_tags` helper handles backwards compatibility with an older format where tags were just strings instead of objects.
+- **Caching uses Flask-Caching with an in-memory dict**: Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache.
 
 ## API
 
