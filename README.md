@@ -96,6 +96,34 @@ App (state owner)
 
 - **Caching uses Flask-Caching with an in-memory dict**: Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache.
 
+### Database
+
+SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/pins.db`. Tables are auto-created on first run.
+
+**`pin`**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | INTEGER | Primary key, auto-increment |
+| title | VARCHAR(50) | Required |
+| description | TEXT | Optional |
+| location | VARCHAR(100) | Reverse-geocoded address |
+| lat | FLOAT | Latitude |
+| lng | FLOAT | Longitude |
+| tags | TEXT | JSON string: `[{"name":"Cafe","color":"#8B4513"}]` |
+| created_at | DATETIME | Server default |
+
+**`tag`**
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | INTEGER | Primary key |
+| name | VARCHAR(20) | Unique |
+| color | VARCHAR(7) | Hex color |
+| icon | VARCHAR(30) | Optional icon key |
+
+10 built-in tags are seeded on first run. Custom tags can be created from the pin form.
+
 ## API
 
 | Method | Endpoint | What it does |
@@ -146,34 +174,6 @@ curl -X DELETE http://localhost:5001/api/pins/1 \
 **Cached location**: Your last location is saved to `localStorage` so the map loads instantly where you left off instead of flying across the country from a default location while waiting for the geolocation API. If geolocation fails entirely, it falls back to NYC.
 
 **Server-side tag filtering**: Tags are filtered on the backend rather than fetching everything and filtering client-side. Scales better once you have a lot of pins. The filter bar only shows built-in tags. Custom tags are descriptive labels on individual pins but don't clutter the filter UI. Without user accounts, if every custom tag showed up in the filter bar you'd quickly have hundreds of one-off tags.
-
-## Database
-
-SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/pins.db`. Tables are auto-created on first run.
-
-**`pin`**
-
-| Column | Type | Notes |
-|--------|------|-------|
-| id | INTEGER | Primary key, auto-increment |
-| title | VARCHAR(50) | Required |
-| description | TEXT | Optional |
-| location | VARCHAR(100) | Reverse-geocoded address |
-| lat | FLOAT | Latitude |
-| lng | FLOAT | Longitude |
-| tags | TEXT | JSON string: `[{"name":"Cafe","color":"#8B4513"}]` |
-| created_at | DATETIME | Server default |
-
-**`tag`**
-
-| Column | Type | Notes |
-|--------|------|-------|
-| id | INTEGER | Primary key |
-| name | VARCHAR(20) | Unique |
-| color | VARCHAR(7) | Hex color |
-| icon | VARCHAR(30) | Optional icon key |
-
-10 built-in tags are seeded on first run. Custom tags can be created from the pin form.
 
 ## Project Structure
 
