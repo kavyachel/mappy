@@ -23,7 +23,7 @@ function AppContent() {
   const { showAlert } = useAlert()
 
   const refreshTags = useCallback(() => {
-    fetchTags().then(setTags).catch(() => showAlert('Failed to load tags'))
+    fetchTags().then(setTags).catch((e) => showAlert(e.message))
   }, [showAlert])
 
   useEffect(() => {
@@ -51,7 +51,7 @@ function AppContent() {
       }
       closeForm()
     } catch (error) {
-      showAlert(editingPin ? 'Failed to update pin' : 'Failed to create pin')
+      showAlert(error.message)
     }
   }
 

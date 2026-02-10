@@ -1,6 +1,16 @@
 import { API_BASE, headers } from './config'
 import { fetchLocation } from './mapbox'
 
+const apiError = async (response, fallback) => {
+  try {
+    const body = await response.json()
+    throw new Error(body.error || fallback)
+  } catch (e) {
+    if (e.message !== fallback) throw e
+    throw new Error(fallback)
+  }
+}
+
 // Fetch pins within viewport bounds, optionally filtered by tag
 export const fetchPins = async (bounds, tag = null) => {
   const bbox = [
@@ -16,11 +26,7 @@ export const fetchPins = async (bounds, tag = null) => {
   }
 
   const response = await fetch(`${API_BASE}/pins?${params}`, { headers })
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch pins')
-  }
-
+  if (!response.ok) await apiError(response, 'Failed to fetch pins')
   return response.json()
 }
 
@@ -39,11 +45,7 @@ export const addPin = async (pin) => {
       lng: pin.lng
     })
   })
-
-  if (!response.ok) {
-    throw new Error('Failed to create pin')
-  }
-
+  if (!response.ok) await apiError(response, 'Failed to create pin')
   return response.json()
 }
 
@@ -60,7 +62,7 @@ export const updatePin = async (pinId, pin) => {
       lng: pin.lng
     })
   })
-  if (!response.ok) throw new Error('Failed to update pin')
+  if (!response.ok) await apiError(response, 'Failed to update pin')
   return response.json()
 }
 
@@ -70,10 +72,6 @@ export const deletePin = async (pinId) => {
     method: 'DELETE',
     headers
   })
-
-  if (!response.ok) {
-    throw new Error('Failed to delete pin')
-  }
-
+  if (!response.ok) await apiError(response, 'Failed to delete pin')
   return response.json()
 }

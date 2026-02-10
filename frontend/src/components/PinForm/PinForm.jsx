@@ -9,7 +9,8 @@ import './PinForm.css'
 
 const CUSTOM_TAG_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-  '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'
+  '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F',
+  '#77DD77'
 ]
 
 function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
@@ -35,12 +36,18 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
   const [customColor, setCustomColor] = useState(CUSTOM_TAG_COLORS[0])
   const [customIcon, setCustomIcon] = useState(null)
   const { showAlert } = useAlert()
+  const [tagsChanged, setTagsChanged] = useState(false)
 
   const selectTag = (name) => {
-    setSelectedTags(prev => prev.includes(name) ? prev : [...prev, name])
+    setSelectedTags(prev => {
+      if (prev.includes(name)) return prev
+      setTagsChanged(true)
+      return [...prev, name]
+    })
   }
 
   const removeTag = (name) => {
+    setTagsChanged(true)
     setSelectedTags(prev => prev.filter(t => t !== name))
   }
 
@@ -54,13 +61,14 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
       onTagCreated?.()
 
       setCustomTags(prev => ({ ...prev, [name]: { color: customColor, icon: customIcon } }))
+      setTagsChanged(true)
       setSelectedTags(prev => [...prev, name])
       setCustomName('')
       setCustomColor(CUSTOM_TAG_COLORS[0])
       setCustomIcon(null)
       setShowCustomForm(false)
     } catch (error) {
-      showAlert('Failed to create tag')
+      showAlert(error.message)
     }
   }
 
@@ -78,6 +86,7 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
 
       <Formik
         enableReinitialize
+        validateOnMount
         initialValues={{ title: pin?.title || '', description: pin?.description || '' }}
         validate={values => {
           if (!values.title.trim()) return { title: 'Title is required' }
@@ -101,6 +110,9 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
           })
         }}
       >
+        {({ dirty, isValid }) => {
+          const isDirty = dirty || tagsChanged
+          return (
         <Form className="form">
           <div className="form-group">
             <label htmlFor="title">Title</label>
@@ -161,10 +173,10 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
 
             {showCustomForm && (
               <div className="custom-tag-form">
+                <label htmlFor="tag">TAG NAME</label>
                 <input
                   type="text"
                   className="custom-tag-input"
-                  placeholder="Tag name"
                   maxLength={20}
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
@@ -193,15 +205,17 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
                     />
                   ))}
                 </div>
-                <button type="button" className="btn secondary" onClick={addCustomTag}>
+                <button type="button" className={`btn secondary ${!customName.trim() ? 'btn-disabled' : ''}`} onClick={addCustomTag}>
                   ADD
                 </button>
               </div>
             )}
           </div>
 
-          <button type="submit" className="btn">{isEditing ? 'UPDATE PIN' : 'SAVE PIN'}</button>
+          <button type="submit" className={`btn ${!isValid || (isEditing && !isDirty) ? 'btn-disabled' : ''}`}>{isEditing ? 'UPDATE PIN' : 'SAVE PIN'}</button>
         </Form>
+          )
+        }}
       </Formik>
     </div>
   )

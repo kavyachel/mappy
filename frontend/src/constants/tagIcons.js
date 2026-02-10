@@ -13,14 +13,10 @@ import {
   MdFavorite,
   MdHome,
   MdWork,
-  MdShoppingCart,
   MdFlightTakeoff,
   MdPets,
   MdMusicNote,
-  MdCameraAlt,
   MdMenuBook,
-  MdDirectionsBike,
-  MdBeachAccess
 } from 'react-icons/md'
 
 export const TAG_ICONS = {

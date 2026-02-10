@@ -138,7 +138,7 @@ function Map({ onLocationSelect, selectedLocation, selectedTag, onPinsLoaded, fl
       onPinsLoadedRef.current?.(pins)
       setPinsLoadingRef.current?.(false)
     } catch (error) {
-      showAlert('Failed to load pins')
+      showAlert(error.message)
       setPinsLoadingRef.current?.(false)
     }
   }, [clearMarkers, addMarkers, showAlert])

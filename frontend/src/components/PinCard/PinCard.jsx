@@ -2,11 +2,13 @@ import { useState, useRef, useEffect } from 'react'
 import { IoEllipsisVertical } from 'react-icons/io5'
 import { deletePin } from '../../api/pins'
 import { TAG_ICONS, CUSTOM_ICON_OPTIONS } from '../../constants/tagIcons'
+import { useAlert } from '../Alert/Alert'
 import './PinCard.css'
 
 function PinCard({ pin, onClick, onDelete, onEdit }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
+  const { showAlert } = useAlert()
 
   const handleDelete = async (e) => {
     e.stopPropagation()
@@ -14,7 +16,7 @@ function PinCard({ pin, onClick, onDelete, onEdit }) {
       await deletePin(pin.id)
       onDelete?.(pin.id)
     } catch (error) {
-      console.error('Failed to delete pin', error)
+      showAlert(error.message)
     }
   }
 
