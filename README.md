@@ -88,13 +88,10 @@ App (state owner)
 
 - **The Mapbox-React Bridge**: Mapbox event handlers don't naturally "see" React state updates. To solve this, I used Refs to store callback props. This lets the map listeners stay mounted (efficient) while still accessing the freshest state (accurate).
 - **Unified Popup Logic**: Opening a pin happens from two places: the Sidebar and the Map. To avoid 40+ lines of redundant code, I created a showPinPopup helper inside the Map component. It handles the fly-to animation, opening the popup, and the fly-back logic when closed.
-- **State Syncing**: I kept the data flow "lazy" to avoid complex refresh logic:
-  * Creates/Edits: Closing the form resets the location, which automatically triggers a pin reload.
-  * Deletions: Uses a simple refreshKey (counter) to force a quick update when a pin is removed.
 
 ### Backend
 
-- **Flask + SQLAlchemy + SQLite**: The API is one blueprint with standard REST endpoints. I didn't add a service layer or repository pattern. The route handlers just talk directly to the models, which is the right level of abstraction for two tables.
+- **Flask + SQLAlchemy + SQLite**: The API is one blueprint with standard REST endpoints. The route handlers just talk directly to the models, which I felt was the right level of abstraction for two tables.
 
 - **Caching uses Flask-Caching with an in-memory dict**: Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache. It's a blunt strategy, but with a single-process SQLite backend there's no real benefit to doing anything smarter.
 
@@ -141,15 +138,11 @@ curl -X DELETE http://localhost:5001/api/pins/1 \
 
 **JavaScript over TypeScript**: Mapbox GL JS has a pretty rough TypeScript story. The types are community-maintained, the map instance typing is clunky, and most of the Mapbox docs and examples are plain JS. For a project this size the overhead of fighting type definitions wasn't worth it. If this grew significantly I'd consider migrating, but right now JS keeps things moving fast.
 
-**Mapbox over Google Maps**: I felt like Mapbox had an easier learning curve, and I wanted something highly customizable. The free tier is generous (50k loads/month vs Google's limited quota), and the style editor made it easy to get a custom map look without writing CSS hacks.
+**Mapbox over Google Maps**: I felt like Mapbox had an easier learning curve, and I wanted something highly customizable. The free tier is also pretty generous (50k loads/month vs Google's limited quota).
 
-**SQLite over Postgres**: Zero setup, just a file. No server process to manage. If this ever needed to scale I'd switch to Postgres with PostGIS for proper spatial indexing. Right now viewport queries are just `WHERE lat BETWEEN x AND y` which scans the table, but it's fast enough for thousands of pins.
+**SQLite over Postgres**: This app is pretty light on the data (only two tables), so I went with something SQLite to keep it lightweight. If this ever needed to scale I'd switch to Postgres with PostGIS for proper spatial indexing. Right now viewport queries are just `WHERE lat BETWEEN x AND y` which scans the table, but it's fast enough for thousands of pins.
 
-**Flask over FastAPI**: Every request just hits SQLite and returns. There's no I/O concurrency to benefit from async. Flask has less magic, no Pydantic models, no dependency injection, just route handlers. FastAPI's auto-generated docs are nice, but not worth the extra abstractions for a project this small.
-
-**JSON tags instead of a join table**: Tags live as a JSON string on the Pin row: `[{"name":"Cafe","color":"#8B4513"}]`. That avoids a `pin_tags` join table and the N+1 problem that comes with it. The tradeoff is tag queries use `LIKE` matching, which won't scale to millions of rows. For a personal map app the simplicity wins.
-
-**Viewport-scoped queries**: Pins are only fetched for the visible map area, not all at once. The sidebar list and markers always reflect what's on screen. The frontend re-fetches on every `moveend` event, and the backend caches responses by rounded viewport coordinates so rapid panning doesn't hammer the database.
+**JSON tags instead of a join table**: Tags live as a JSON string on the Pin row: `[{"name":"Cafe","color":"#8B4513"}]`. That avoids a `pin_tags` join table. The tradeoff is tag queries use `LIKE` matching, which won't scale to millions of rows.
 
 **Cached location**: Your last location is saved to `localStorage` so the map loads instantly where you left off instead of flying across the country from a default location while waiting for the geolocation API. If geolocation fails entirely, it falls back to NYC.
 
@@ -208,7 +201,12 @@ frontend/
 
 ## What I'd Do Next
 
-- [ ] Image uploads on pins
-- [ ] Search by title or location
-- [ ] Shareable pin URLs
-- [ ] User accounts with per-user pins and custom tag management
+* **Edit/Delete Tags** - Add ability to edit and delete existing tags with confirmation dialogs
+* **Mobile Responsiveness** - Optimize layout and interactions for mobile devices and tablets
+* **Improve Pins Pop-ups** - Implement popup modals for edit and delete actions to improve UX
+* **Unit Tests** - Add comprehensive test suites using pytest (backend) and Jest (frontend)
+* **Collapsible Sidebar** - Add ability to toggle sidebar visibility for better screen real estate
+* **Image Uploads** - Allow users to attach images to pins for visual reference
+* **Search Functionality** - Add search capability by title or location to quickly find pins
+* **Shareable URLs** - Generate unique shareable links for individual pins
+* **User Accounts** - Implement authentication with per-user pin collections and custom tag management (plus crowdsourced tagging could get chaotic and may need moderation)
