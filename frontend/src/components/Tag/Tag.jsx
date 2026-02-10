@@ -11,15 +11,13 @@ function Tag({ name, color, icon, onRemove, selectable, selected, onToggle }) {
     }
   }
 
-  const isRemovable = !!onRemove
-
   return (
     <div
-      className={`tag ${selectable ? 'tag-selectable' : ''} ${selected ? 'tag-selected' : ''} ${isRemovable ? 'tag-removable' : ''}`}
+      className={`tag ${selectable ? 'tag-selectable' : ''}`}
       onClick={handleClick}
       style={{ backgroundColor: bgColor }}
     >
-      {Icon && <Icon className="tag-icon" />}
+      {Icon && <Icon />}
       <span>{name}</span>
       {onRemove && (
         <button

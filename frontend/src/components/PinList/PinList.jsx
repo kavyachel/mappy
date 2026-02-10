@@ -5,7 +5,6 @@ import './PinList.css'
 function PinList({ pins, onPinClick, onPinDelete, onPinEdit, tags, selectedTag, onTagSelect }) {
   return (
     <div className="pin-list">
-      <h2>My Pins</h2>
       <TagFilter
         tags={tags}
         selectedTag={selectedTag}

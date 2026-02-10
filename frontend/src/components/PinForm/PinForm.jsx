@@ -1,6 +1,6 @@
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import { useState } from 'react'
-import { IoClose, IoAdd } from 'react-icons/io5'
+import { IoAdd } from 'react-icons/io5'
 import Tag from '../Tag/Tag'
 import { useAlert } from '../Alert/Alert'
 import { createTag } from '../../api/tags'
@@ -13,7 +13,7 @@ const CUSTOM_TAG_COLORS = [
   '#77DD77'
 ]
 
-function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
+function PinForm({ location, onSubmit, tags, onTagCreated, pin }) {
   const isEditing = !!pin
   const builtInTagNames = new Set(tags.map(t => t.name))
 
@@ -74,15 +74,7 @@ function PinForm({ location, onSubmit, onClose, tags, onTagCreated, pin }) {
 
   return (
     <div className="pin-form">
-      <div className="form-header">
-        <div className='form-title'>
-          <h2>{isEditing ? 'Edit Pin' : 'Create a Pin'}</h2>
-          <button type="button" className="btn-icon" style={{ marginLeft: 'auto' }} onClick={onClose}>
-            <IoClose size={20} />
-          </button>
-        </div>
-        <p className='coords'>📍 {`${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}</p>
-      </div>
+      <p className='coords'>📍 {`${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}</p>
 
       <Formik
         enableReinitialize

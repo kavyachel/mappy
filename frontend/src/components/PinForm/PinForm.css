@@ -14,28 +14,9 @@
   gap: 16px;
 }
 
-.form-header {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-header p {
-  margin-top: 2px;
+.coords {
   color: #6b7280;
   font-size: 14px;
-}
-
-.form-title h2 {
-  font-size: 26px;
-}
-
-.form-title {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.coords {
   margin-bottom: 4px;
 }
 

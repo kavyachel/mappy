@@ -15,13 +15,23 @@
   width: min(400px, calc(100vw - 32px));
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
   z-index: 999;
-  padding: 24px 20px;
+  padding: 22px;
   box-sizing: border-box;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   animation: slideIn 0.25s ease-out;
   display: flex;
   flex-direction: column;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.sidebar-header-action {
+  margin-left: auto;
 }
 
 .sidebar-divider {
