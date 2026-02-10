@@ -74,7 +74,7 @@ For a production environment, we would move away from manual generation and use:
 
 ### Frontend
 
-Single-page React app with Vite. There's no router, the whole UI is just the map and a sidebar. All state lives in `App.jsx` and flows down through props. I avoided Redux/global state management libraries. Prop drilling was cleaner and more predictable for an app of this size.
+Single-page React app with Vite. There's no router, the whole UI is just the map and a sidebar. All state lives in `App.jsx` and flows down through props. I avoided Redux/global state management libraries. Prop drilling was cleaner and more predictable for an app of this size. React Query handles server state — tags are fetched once and cached indefinitely, while pin queries are cached by viewport bounds (rounded to 3 decimal places) with a 30-second stale time so panning back to a recently visited area skips the network request entirely.
 
 ```
 App (state owner)
@@ -96,9 +96,7 @@ App (state owner)
 
 - **Flask + SQLAlchemy + SQLite**: The API is one blueprint with standard REST endpoints. I didn't add a service layer or repository pattern. The route handlers just talk directly to the models, which is the right level of abstraction for two tables.
 
-- **Caching uses Flask-Caching with an in-memory dict**: Viewport query cache keys are rounded to 3 decimal places (~111m), so nearby pans usually hit cache. Any write clears the whole cache. It's a blunt strategy, but with a single-process SQLite backend there's no real benefit to doing anything smarter.
-
-- **Serialized Tag Storage**: Tags are stored as a JSON string on the Pin row rather than in a normalized join table. That means tag filtering uses `LIKE '%"tagname"%'` which won't scale to millions of rows, but it avoids the complexity of a many-to-many relationship for what's essentially just a label. A `normalize_tags` helper handles backwards compatibility with an older format where tags were just strings instead of objects.
+- **Tags via join table**: Tags are stored in a separate `tag` table with a `pin_tags` many-to-many join table, so tag filtering uses a proper `JOIN` instead of string matching.
 
 ## API
 
@@ -147,9 +145,7 @@ curl -X DELETE http://localhost:5001/api/pins/1 \
 
 **Flask over FastAPI**: Every request just hits SQLite and returns. There's no I/O concurrency to benefit from async. Flask has less magic, no Pydantic models, no dependency injection, just route handlers. FastAPI's auto-generated docs are nice, but not worth the extra abstractions for a project this small.
 
-**JSON tags instead of a join table**: Tags live as a JSON string on the Pin row: `[{"name":"Cafe","color":"#8B4513"}]`. That avoids a `pin_tags` join table and the N+1 problem that comes with it. The tradeoff is tag queries use `LIKE` matching, which won't scale to millions of rows. For a personal map app the simplicity wins.
-
-**Viewport-scoped queries**: Pins are only fetched for the visible map area, not all at once. The sidebar list and markers always reflect what's on screen. The frontend re-fetches on every `moveend` event, and the backend caches responses by rounded viewport coordinates so rapid panning doesn't hammer the database.
+**Viewport-scoped queries**: Pins are only fetched for the visible map area, not all at once. The sidebar list and markers always reflect what's on screen. The frontend re-fetches on every `moveend` event. React Query caches responses by rounded viewport coordinates on the client, so panning back to a recently visited area within 30 seconds reuses the cached data without hitting the server.
 
 **Cached location**: Your last location is saved to `localStorage` so the map loads instantly where you left off instead of flying across the country from a default location while waiting for the geolocation API. If geolocation fails entirely, it falls back to NYC.
 
@@ -169,7 +165,6 @@ SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/p
 | location | VARCHAR(100) | Reverse-geocoded address |
 | lat | FLOAT | Latitude |
 | lng | FLOAT | Longitude |
-| tags | TEXT | JSON string: `[{"name":"Cafe","color":"#8B4513"}]` |
 | created_at | DATETIME | Server default |
 
 **`tag`**
@@ -180,6 +175,13 @@ SQLite with SQLAlchemy ORM. The database is a single file at `backend/instance/p
 | name | VARCHAR(20) | Unique |
 | color | VARCHAR(7) | Hex color |
 | icon | VARCHAR(30) | Optional icon key |
+
+**`pin_tags`** (join table)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| pin_id | INTEGER | Foreign key → pin.id |
+| tag_id | INTEGER | Foreign key → tag.id |
 
 10 built-in tags are seeded on first run. Custom tags can be created from the pin form.
 
@@ -192,8 +194,7 @@ backend/
     api.py         # REST endpoints
     models.py      # Pin + Tag models
     db.py          # SQLAlchemy setup
-    cache.py       # Flask-Caching setup
-    helpers.py     # Serialization, cache keys, tag normalization
+    helpers.py     # Pin serialization
   run.py           # Entry point
 
 frontend/

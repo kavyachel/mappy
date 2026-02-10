@@ -2,8 +2,7 @@ import os
 from flask import Blueprint, request, jsonify
 from .db import db
 from .models import Pin, Tag
-from .cache import cache
-from .helpers import serialize_pin, round_viewport_key
+from .helpers import serialize_pin
 
 api = Blueprint("api", __name__)
 
@@ -49,12 +48,10 @@ def create_pin():
 
     db.session.add(pin)
     db.session.commit()
-    cache.clear()
 
     return jsonify(serialize_pin(pin)), 201
 
 @api.route('/pins/<int:id>', methods=['GET'])
-@cache.cached(timeout=30)
 def retrieve_pin(id):
     pin = Pin.query.get(id)
     if not pin:
@@ -62,7 +59,6 @@ def retrieve_pin(id):
     return jsonify(serialize_pin(pin)), 200
 
 @api.route('/pins', methods=['GET'])
-@cache.cached(timeout=30, make_cache_key=round_viewport_key)
 def retrieve_all_pins():
     viewport = request.args.get('viewport')
     tag = request.args.get('tag')
@@ -110,7 +106,6 @@ def update_pin(id):
             pin.tags.append(tag)
 
     db.session.commit()
-    cache.clear()
 
     return jsonify(serialize_pin(pin)), 200
 
@@ -121,7 +116,6 @@ def delete_pin(id):
         return {"error": "Pin not found"}, 404
     db.session.delete(pin)
     db.session.commit()
-    cache.clear()
     return {"message": "Pin deleted"}, 200
 
 # --- Tag endpoints ---
