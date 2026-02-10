@@ -43,7 +43,7 @@ cp .env.example .env
 Grab a token from [Mapbox](https://account.mapbox.com/access-tokens/) and add it to `.env`:
 
 ```
-VITE_PUBLIC_MAPBOX_TOKEN=pk.your_token_here
+VITE_PUBLIC_MAPBOX_TOKEN=your_token_here
 VITE_API_KEY=your_generated_key
 ```
 
