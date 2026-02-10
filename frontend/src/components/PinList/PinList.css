@@ -1,6 +1,17 @@
 .pin-list {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.pin-list-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pin-list .sidebar-content-list {
   gap: 12px;
 }
 

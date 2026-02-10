@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import Map from './components/Map/Map'
 import PinForm from './components/PinForm/PinForm'
-import TagFilter from './components/TagFilter/TagFilter'
 import PinList from './components/PinList/PinList'
 import Sidebar from './components/Sidebar/Sidebar'
 import { AlertProvider, useAlert } from './components/Alert/Alert'
@@ -83,22 +82,19 @@ function AppContent() {
             pin={editingPin}
           />
         ) : (
-          <> 
-            <h2>Your Pins</h2>
-            <TagFilter
+          pinsLoading ? (
+            <div className="loading"></div>
+          ) : (
+            <PinList
+              pins={pins}
+              onPinClick={handlePinClick}
+              onPinDelete={handlePinDelete}
+              onPinEdit={handlePinEdit}
               tags={tags}
               selectedTag={selectedTag}
               onTagSelect={setSelectedTag}
             />
-            <div className="sidebar-divider" />
-            <div className="sidebar-content-list">
-              {pinsLoading ? (
-                <div className="loading"></div>
-              ) : (
-                <PinList pins={pins} onPinClick={handlePinClick} onPinDelete={handlePinDelete} onPinEdit={handlePinEdit} />
-              )}
-            </div>
-          </>
+          )
         )}
       </Sidebar>
 
